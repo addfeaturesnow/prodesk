@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useGroups from '@/hooks/useGroups';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/integrations/api/client';
 
 export default function GroupsPage() {
   const { groups, loading, error, refresh, createGroup, addMember, removeMember } = useGroups();
@@ -11,8 +11,12 @@ export default function GroupsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from('divers').select('id, name');
-      if (data) setDivers(data);
+      try {
+        const data = await apiClient.divers.list();
+        setDivers(data);
+      } catch (err) {
+        console.error('Failed to load divers', err);
+      }
     })();
   }, []);
 
@@ -83,7 +87,7 @@ export default function GroupsPage() {
                           <div className="text-sm text-muted-foreground">{m.role || ''}</div>
                           <button className="btn btn-sm" onClick={async () => {
                             if (!confirm(`Remove ${m.diver?.name || 'this member'} from ${g.name}?`)) return;
-                            await removeMember(m.id);
+                            await removeMember(m.id, g.id);
                           }}>Remove</button>
                         </div>
                       </div>

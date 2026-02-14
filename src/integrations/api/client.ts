@@ -1,0 +1,34 @@
+// Simple API client for the local SQLite backend
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const userId = 'user-1'; // In production, get from auth
+
+export const apiClient = {
+  async request(method, path, body = null) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-user-id': userId,
+    };
+
+    const options = { method, headers };
+    if (body) options.body = JSON.stringify(body);
+
+    const res = await fetch(`${BASE_URL}${path}`, options);
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || `Request failed with status ${res.status}`);
+    }
+    return res.json();
+  },
+
+  groups: {
+    list: () => apiClient.request('GET', '/api/groups'),
+    create: (payload) => apiClient.request('POST', '/api/groups', payload),
+    addMember: (groupId, payload) => apiClient.request('POST', `/api/groups/${groupId}/members`, payload),
+    removeMember: (groupId, memberId) => apiClient.request('DELETE', `/api/groups/${groupId}/members/${memberId}`),
+  },
+
+  divers: {
+    list: () => apiClient.request('GET', '/api/divers'),
+    create: (payload) => apiClient.request('POST', '/api/divers', payload),
+  },
+};

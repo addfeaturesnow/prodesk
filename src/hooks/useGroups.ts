@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/integrations/api/client';
 
 export function useGroups() {
   const [groups, setGroups] = useState<any[]>([]);
@@ -9,23 +9,16 @@ export function useGroups() {
   const loadGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
-    // select groups with leader and members (members include diver info)
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*, leader:leader_id(*), members:group_members(id, role, diver:diver_id(id, name))')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('loadGroups error', error);
+    try {
+      const data = await apiClient.groups.list();
+      setGroups(data ?? []);
+    } catch (err) {
+      console.error('loadGroups error', err);
       setGroups([]);
-      setError(error);
+      setError(err);
+    } finally {
       setLoading(false);
-      return { data: null, error };
     }
-
-    setGroups(data ?? []);
-    setLoading(false);
-    return { data };
   }, []);
 
   useEffect(() => {
@@ -38,40 +31,43 @@ export function useGroups() {
   }, [loadGroups]);
 
   async function createGroup(payload: { name: string; leader_id?: string | null; description?: string | null }) {
-    const { data, error } = await supabase.from('groups').insert([{
-      name: payload.name,
-      leader_id: payload.leader_id ?? null,
-      description: payload.description ?? null,
-    }]).select().single();
-    if (error) {
-      console.error('createGroup error', error);
-      setError(error);
-    } else if (data) {
+    try {
+      const data = await apiClient.groups.create({
+        name: payload.name,
+        leader_id: payload.leader_id ?? null,
+        description: payload.description ?? null,
+      });
       await loadGroups();
+      return { data, error: null };
+    } catch (err) {
+      console.error('createGroup error', err);
+      setError(err);
+      return { data: null, error: err };
     }
-    return { data, error };
   }
 
   async function addMember(groupId: string, diverId: string, role?: string) {
-    const { data, error } = await supabase.from('group_members').insert([{ group_id: groupId, diver_id: diverId, role }]).select().single();
-    if (error) {
-      console.error('addMember error', error);
-      setError(error);
-    } else {
+    try {
+      const data = await apiClient.groups.addMember(groupId, { diver_id: diverId, role });
       await loadGroups();
+      return { data, error: null };
+    } catch (err) {
+      console.error('addMember error', err);
+      setError(err);
+      return { data: null, error: err };
     }
-    return { data, error };
   }
 
-  async function removeMember(memberId: string) {
-    const { error } = await supabase.from('group_members').delete().eq('id', memberId);
-    if (error) {
-      console.error('removeMember error', error);
-      setError(error);
-    } else {
+  async function removeMember(memberId: string, groupId: string) {
+    try {
+      await apiClient.groups.removeMember(groupId, memberId);
       await loadGroups();
+      return { error: null };
+    } catch (err) {
+      console.error('removeMember error', err);
+      setError(err);
+      return { error: err };
     }
-    return { error };
   }
 
   return { groups, loading, error, createGroup, addMember, removeMember, refresh: loadGroups };
