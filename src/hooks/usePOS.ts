@@ -7,7 +7,11 @@ export interface Equipment {
   category: string;
   sku?: string;
   price: number;
+  can_buy: number;
+  can_rent: number;
+  rent_price_per_day: number;
   quantity_in_stock: number;
+  quantity_available_for_rent: number;
   reorder_level: number;
   supplier?: string;
   description?: string;
@@ -26,6 +30,8 @@ export interface TransactionItem {
   quantity: number;
   unit_price: number;
   subtotal: number;
+  transaction_type: string;
+  rental_days: number;
 }
 
 export interface Transaction {
@@ -80,12 +86,14 @@ export async function fetchTopItems(days = 30, limit = 5) {
 export const equipment = {
   list: async () => {
     const response = await fetch('/api/equipment');
+    if (!response.ok) throw new Error(`Failed to load equipment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
 
   get: async (id: string) => {
     const response = await fetch(`/api/equipment/${id}`);
+    if (!response.ok) throw new Error(`Failed to load equipment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -96,6 +104,7 @@ export const equipment = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(item),
     });
+    if (!response.ok) throw new Error(`Failed to create equipment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -106,6 +115,7 @@ export const equipment = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(item),
     });
+    if (!response.ok) throw new Error(`Failed to update equipment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -114,6 +124,7 @@ export const equipment = {
     const response = await fetch(`/api/equipment/${id}`, {
       method: 'DELETE',
     });
+    if (!response.ok) throw new Error(`Failed to delete equipment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -123,12 +134,14 @@ export const equipment = {
 export const transactions = {
   list: async () => {
     const response = await fetch('/api/transactions');
+    if (!response.ok) throw new Error(`Failed to load transactions: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
 
   get: async (id: string) => {
     const response = await fetch(`/api/transactions/${id}`);
+    if (!response.ok) throw new Error(`Failed to load transaction: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -136,7 +149,7 @@ export const transactions = {
   create: async (transaction: {
     diver_id?: string;
     booking_id?: string;
-    items: Array<{ equipment_id: string; quantity: number; unit_price: number }>;
+    items: Array<{ equipment_id: string; quantity: number; unit_price: number; transaction_type?: string; rental_days?: number }>;
     tax?: number;
     discount?: number;
     notes?: string;
@@ -146,6 +159,7 @@ export const transactions = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(transaction),
     });
+    if (!response.ok) throw new Error(`Failed to create transaction: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -155,6 +169,7 @@ export const transactions = {
 export const payments = {
   list: async () => {
     const response = await fetch('/api/payments');
+    if (!response.ok) throw new Error(`Failed to load payments: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -171,6 +186,7 @@ export const payments = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payment),
     });
+    if (!response.ok) throw new Error(`Failed to create payment: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
@@ -180,6 +196,7 @@ export const payments = {
 export const pos = {
   getSummary: async () => {
     const response = await fetch('/api/pos/summary');
+    if (!response.ok) throw new Error(`Failed to load POS summary: ${response.status}`);
     const data = await response.json();
     return { data, error: null };
   },
