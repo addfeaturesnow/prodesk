@@ -89,6 +89,12 @@ export default function POSPage() {
   // Equipment management
   const handleSaveEquipment = async () => {
     try {
+      // Client-side validation
+      if (!equipmentForm.name || !equipmentForm.category) {
+        toast({ title: "Error", description: "Name and Category are required", variant: "destructive" });
+        return;
+      }
+
       if (editingEquipmentId) {
         await equipment.update(editingEquipmentId, equipmentForm);
         toast({ title: "Success", description: "Equipment updated" });
@@ -101,7 +107,9 @@ export default function POSPage() {
       setEquipmentOpen(false);
       loadEquipment();
     } catch (err) {
-      toast({ title: "Error", description: "Failed to save equipment", variant: "destructive" });
+      const errorMessage = err instanceof Error ? err.message : "Failed to save equipment";
+      console.error("Equipment save error:", err);
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     }
   };
 
@@ -390,7 +398,7 @@ export default function POSPage() {
 
           <Dialog open={equipmentOpen} onOpenChange={setEquipmentOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => { setEquipmentForm({}); setEditingEquipmentId(null); setEquipmentOpen(true); }}>
+              <Button onClick={() => { setEquipmentForm({ can_buy: 1, can_rent: 1 }); setEditingEquipmentId(null); setEquipmentOpen(true); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Equipment
               </Button>
@@ -441,7 +449,7 @@ export default function POSPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Can Buy?</Label>
-                    <Select value={equipmentForm.can_buy ? "yes" : "no"} onValueChange={(val) => setEquipmentForm({ ...equipmentForm, can_buy: val === "yes" })}>
+                    <Select value={equipmentForm.can_buy ? "yes" : "no"} onValueChange={(val) => setEquipmentForm({ ...equipmentForm, can_buy: val === "yes" ? 1 : 0 })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -453,7 +461,7 @@ export default function POSPage() {
                   </div>
                   <div>
                     <Label>Can Rent?</Label>
-                    <Select value={equipmentForm.can_rent ? "yes" : "no"} onValueChange={(val) => setEquipmentForm({ ...equipmentForm, can_rent: val === "yes" })}>
+                    <Select value={equipmentForm.can_rent ? "yes" : "no"} onValueChange={(val) => setEquipmentForm({ ...equipmentForm, can_rent: val === "yes" ? 1 : 0 })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
