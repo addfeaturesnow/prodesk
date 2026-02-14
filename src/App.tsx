@@ -27,6 +27,7 @@ import MaintenancePage from "@/pages/MaintenancePage";
 import HiraPage from "@/pages/HiraPage";
 import IncidentsPage from "@/pages/IncidentsPage";
 import DebugPage from "@/pages/DebugPage";
+import GroupsPage from "@/pages/GroupsPage";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ function ProtectedRoutes() {
         <Route path="/maintenance" element={<MaintenancePage />} />
         <Route path="/hira" element={<HiraPage />} />
         <Route path="/incidents" element={<IncidentsPage />} />
+        <Route path="/groups" element={<GroupsPage />} />
         <Route path="/emergency" element={<EmergencyPage />} />
         <Route path="/accommodations" element={<AccommodationsPage />} />
         <Route path="*" element={<NotFound />} />
