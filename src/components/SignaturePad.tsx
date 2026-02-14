@@ -12,7 +12,13 @@ const SignaturePad = forwardRef<SignaturePadHandle, { className?: string }>(func
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    padRef.current = new SignaturePadLib(canvasRef.current, { backgroundColor: 'rgba(0,0,0,0)' });
+    padRef.current = new SignaturePadLib(canvasRef.current, {
+      backgroundColor: 'rgba(0,0,0,0)',
+      penColor: '#000000',
+      minWidth: 0.5,
+      maxWidth: 2.5,
+      throttle: 16,
+    });
 
     const resize = () => {
       const canvas = canvasRef.current!;

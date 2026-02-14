@@ -229,7 +229,7 @@ export default function WaiverPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium block mb-2">Signature</label>
+                <label className="text-sm font-medium block mb-2">Signature <span className="text-xs text-muted-foreground">(Draw with mouse or touch)</span></label>
                 <SignaturePad ref={sigRef} />
                 <div className="mt-2 space-x-2">
                   <Button variant="outline" size="sm" onClick={() => {
