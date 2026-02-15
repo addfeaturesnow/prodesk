@@ -27,12 +27,14 @@ interface CalendarEvent {
   type: 'booking' | 'course' | 'incident' | 'staff';
   description?: string;
   color: string;
+  rawData?: any;
 }
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const { trips } = useTrips();
   const { incidents } = useIncidents();
 
@@ -48,17 +50,18 @@ export default function CalendarPage() {
 
         const events: CalendarEvent[] = [];
 
-        // Add booking events
+        // Add booking events - use check_in date
         if (bookingsRes && Array.isArray(bookingsRes)) {
           bookingsRes.forEach((booking: any) => {
-            if (booking.start_date) {
+            if (booking.check_in) {
               events.push({
                 id: `booking-${booking.id}`,
-                date: booking.start_date,
-                title: `Booking: ${booking.user_name || 'N/A'}`,
+                date: booking.check_in,
+                title: `Booking: ${booking.divers?.name || 'N/A'}`,
                 type: 'booking',
-                description: `${booking.number_of_divers || 0} divers`,
+                description: `Course: ${booking.courses?.name || 'Fun Dive'}`,
                 color: 'bg-blue-100 text-blue-800 border-blue-300',
+                rawData: booking,
               });
             }
           });
@@ -67,6 +70,7 @@ export default function CalendarPage() {
         // Add course events
         if (coursesRes && Array.isArray(coursesRes)) {
           coursesRes.forEach((course: any) => {
+            // Courses may not have start_date, so we'll skip them if not available
             if (course.start_date) {
               events.push({
                 id: `course-${course.id}`,
@@ -215,8 +219,9 @@ export default function CalendarPage() {
                         {dayEvents.slice(0, 3).map((event) => (
                           <div
                             key={event.id}
-                            className={`text-xs p-1 rounded truncate border ${event.color}`}
+                            className={`text-xs p-1 rounded truncate border cursor-pointer hover:shadow-md transition-shadow ${event.color}`}
                             title={event.title}
+                            onClick={() => setSelectedEvent(event)}
                           >
                             {event.title}
                           </div>
@@ -233,6 +238,67 @@ export default function CalendarPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Selected Event Details */}
+          {selectedEvent && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle>{selectedEvent.title}</CardTitle>
+                    <CardDescription>{format(parseISO(selectedEvent.date), 'MMMM dd, yyyy')}</CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedEvent(null)}>✕</Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {selectedEvent.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">{selectedEvent.description}</p>
+                  </div>
+                )}
+                
+                {selectedEvent.type === 'booking' && selectedEvent.rawData && (
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Diver</p>
+                        <p>{selectedEvent.rawData.divers?.name || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Course</p>
+                        <p>{selectedEvent.rawData.courses?.name || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Check-out</p>
+                        <p>{selectedEvent.rawData.check_out || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Agent</p>
+                        <p>{selectedEvent.rawData.agent?.name || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Total</p>
+                        <p className="font-bold">${selectedEvent.rawData.total_amount || 0}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground">Status</p>
+                        <Badge>{selectedEvent.rawData.payment_status}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button className="w-full" onClick={() => {
+                  if (selectedEvent.rawData) {
+                    window.location.href = '/bookings';
+                  }
+                }}>
+                  View/Edit Booking
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Legend */}
           <Card>
@@ -277,7 +343,8 @@ export default function CalendarPage() {
                     .map((event) => (
                       <div
                         key={event.id}
-                        className={`p-3 rounded border-l-4 ${event.color}`}
+                        className={`p-3 rounded border-l-4 cursor-pointer hover:shadow-md transition-shadow ${event.color}`}
+                        onClick={() => setSelectedEvent(event)}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">

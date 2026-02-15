@@ -117,48 +117,46 @@ export default function BookingsPage() {
     }
 
     const total = calcTotal();
+    console.log('Form data before submit:', form);
+    console.log('EditingId:', editingId);
+    
     try {
       let bookingId = editingId;
       
+      const payload = {
+        diver_id: form.diver_id,
+        course_id: form.booking_type === "course" ? form.course_id : null,
+        group_id: form.booking_type === "fun_dive" ? form.group_id : null,
+        accommodation_id: form.accommodation_id || null,
+        check_in: form.check_in || null,
+        check_out: form.check_out || null,
+        total_amount: total,
+        payment_status: form.payment_status,
+        notes: form.notes || null,
+        size: form.size || null,
+        weight: form.weight || null,
+        height: form.height || null,
+        agent_id: form.agent_id || null,
+      };
+
+      console.log('Payload to send:', payload);
+      
       if (editingId) {
-        await apiClient.bookings.update(editingId, {
-          diver_id: form.diver_id,
-          course_id: form.booking_type === "course" ? form.course_id : null,
-          group_id: form.booking_type === "fun_dive" ? form.group_id : null,
-          accommodation_id: form.accommodation_id || null,
-          check_in: form.check_in || null,
-          check_out: form.check_out || null,
-          total_amount: total,
-          payment_status: form.payment_status,
-          notes: form.notes || null,
-          size: form.size || null,
-          weight: form.weight || null,
-          height: form.height || null,
-          agent_id: form.agent_id || null,
-        });
+        await apiClient.bookings.update(editingId, payload);
         toast({ title: "Success", description: "Booking updated successfully" });
       } else {
-        const res = await apiClient.bookings.create({
-          diver_id: form.diver_id,
-          course_id: form.booking_type === "course" ? form.course_id : null,
-          group_id: form.booking_type === "fun_dive" ? form.group_id : null,
-          accommodation_id: form.accommodation_id || null,
-          check_in: form.check_in || null,
-          check_out: form.check_out || null,
-          total_amount: total,
-          notes: form.notes || null,
-          size: form.size || null,
-          weight: form.weight || null,
-          height: form.height || null,
-          agent_id: form.agent_id || null,
-        });
+        const res = await apiClient.bookings.create(payload);
         bookingId = res.id;
         toast({ title: "Success", description: "Booking created successfully" });
       }
 
+      console.log('Save successful, reloading...');
       setOpen(false);
+      setEditingId(null);
+      setForm({ booking_type: "course", diver_id: "", group_id: "", course_id: "", accommodation_id: "", check_in: "", check_out: "", payment_status: "unpaid", notes: "", size: "", weight: "", height: "", agent_id: "" });
       load();
     } catch (err) {
+      console.error('Save error:', err);
       toast({ title: "Error", description: String(err), variant: "destructive" });
     }
   };
