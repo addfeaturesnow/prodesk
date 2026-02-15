@@ -28,8 +28,8 @@ export default function POSPage() {
   // State for cart/transaction
   const [cart, setCart] = useState<Array<{ equipment: Equipment; quantity: number; unitPrice: number; transactionType: "buy" | "rent"; rentalDays: number }>>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [selectedDiverId, setSelectedDiverId] = useState("");
-  const [selectedBookingId, setSelectedBookingId] = useState("");
+  const [selectedDiverId, setSelectedDiverId] = useState("none");
+  const [selectedBookingId, setSelectedBookingId] = useState("none");
   const [bookingsList, setBookingsList] = useState<Array<{ id: string; label: string }>>([]);
   const [diversList, setDiversList] = useState<Array<{ id: string; name: string }>>([]);
   const [tax, setTax] = useState(0);
@@ -218,8 +218,8 @@ export default function POSPage() {
         notes: notes || null,
       };
 
-      if (selectedDiverId) transactionData.diver_id = selectedDiverId;
-      if (selectedBookingId) transactionData.booking_id = selectedBookingId;
+      if (selectedDiverId && selectedDiverId !== "none") transactionData.diver_id = selectedDiverId;
+      if (selectedBookingId && selectedBookingId !== "none") transactionData.booking_id = selectedBookingId;
 
       const { data: transaction } = await transactions.create(transactionData);
 
@@ -238,8 +238,8 @@ export default function POSPage() {
 
         // Reset cart
         setCart([]);
-        setSelectedDiverId("");
-        setSelectedBookingId("");
+        setSelectedDiverId("none");
+        setSelectedBookingId("none");
         setTax(0);
         setDiscount(0);
         setNotes("");
@@ -354,7 +354,7 @@ export default function POSPage() {
                             <SelectValue placeholder="Select diver..." />
                           </SelectTrigger>
                           <SelectContent className="z-50 max-h-40 overflow-y-auto">
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             {diversList.map(d => (
                               <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                             ))}
@@ -365,10 +365,10 @@ export default function POSPage() {
                         <Label>Booking (Optional)</Label>
                         <Select value={selectedBookingId} onValueChange={setSelectedBookingId}>
                           <SelectTrigger>
-                            <SelectValue />
+                            <SelectValue placeholder="Select booking..." />
                           </SelectTrigger>
                           <SelectContent className="z-50 max-h-40 overflow-y-auto">
-                            <SelectItem value="">None</SelectItem>
+                            <SelectItem value="none">None</SelectItem>
                             {bookingsList.map(b => (
                               <SelectItem key={b.id} value={b.id}>{b.label}</SelectItem>
                             ))}
