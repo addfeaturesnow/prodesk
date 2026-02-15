@@ -678,16 +678,19 @@ app.put('/api/bookings/:id', (req, res) => {
       db.get(`
         SELECT 
           b.id, b.diver_id, b.course_id, b.group_id, b.accommodation_id, b.check_in, b.check_out,
+          b.size, b.weight, b.height, b.agent_id,
           b.total_amount, b.invoice_number, b.payment_status, b.notes, b.created_at, b.updated_at,
           d.name as diver_name,
           c.name as course_name, c.price as course_price,
           g.name as group_name, g.days as group_days,
-          a.name as accommodation_name, a.price_per_night, a.tier
+          a.name as accommodation_name, a.price_per_night, a.tier,
+          i.id as agent_id, i.name as agent_name
         FROM bookings b
         LEFT JOIN divers d ON b.diver_id = d.id
         LEFT JOIN courses c ON b.course_id = c.id
         LEFT JOIN groups g ON b.group_id = g.id
         LEFT JOIN accommodations a ON b.accommodation_id = a.id
+        LEFT JOIN instructors i ON b.agent_id = i.id
         WHERE b.id = ?
       `, [id], (err, booking) => {
         db.close();
@@ -700,6 +703,10 @@ app.put('/api/bookings/:id', (req, res) => {
           accommodation_id: booking.accommodation_id,
           check_in: booking.check_in,
           check_out: booking.check_out,
+          size: booking.size,
+          weight: booking.weight,
+          height: booking.height,
+          agent_id: booking.agent_id,
           total_amount: booking.total_amount,
           invoice_number: booking.invoice_number,
           payment_status: booking.payment_status,
@@ -709,7 +716,8 @@ app.put('/api/bookings/:id', (req, res) => {
           divers: { name: booking.diver_name },
           courses: { name: booking.course_name, price: booking.course_price },
           groups: { name: booking.group_name, days: booking.group_days },
-          accommodations: { name: booking.accommodation_name, price_per_night: booking.price_per_night, tier: booking.tier }
+          accommodations: { name: booking.accommodation_name, price_per_night: booking.price_per_night, tier: booking.tier },
+          agent: booking.agent_id ? { id: booking.agent_id, name: booking.agent_name } : null
         });
       });
     }
