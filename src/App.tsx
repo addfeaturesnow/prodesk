@@ -33,6 +33,7 @@ import CalendarPage from "@/pages/CalendarPage";
 import FinancePage from "@/pages/FinancePage";
 import CreateDiveTripPage from "@/pages/CreateDiveTripPage";
 import CreateSchedulePage from "@/pages/CreateSchedulePage";
+import InvoicesPage from "@/pages/InvoicesPage";
 import ExpensesPage from "@/pages/ExpensesPage";
 import SuppliersPage from "@/pages/SuppliersPage";
 import PayrollPage from "@/pages/PayrollPage";
