@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, List, Home, FileText, Users } from 'lucide-react';
+import DailySummary from '@/components/DailySummary';
 
 export default function ReportsPage() {
   const [currentDate, setCurrentDate] = useState(new Date(2026, 1, 1)); // February 2026, start from 1st
@@ -71,6 +72,9 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Daily Summary Section */}
+      <DailySummary currentDate={currentDate} onDateChange={setCurrentDate} />
+
       {/* Header with action buttons */}
       <div className="flex items-center justify-between">
         <div>

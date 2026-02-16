@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@/integrations/api/client";
+import DailySummary from "@/components/DailySummary";
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -54,6 +55,9 @@ export default function DashboardPage() {
         <h1 className="page-title">Dashboard</h1>
         <p className="page-description">Overview of your diving operations</p>
       </div>
+
+      {/* Daily Summary */}
+      <DailySummary />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
