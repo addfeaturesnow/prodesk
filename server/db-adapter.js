@@ -1,11 +1,16 @@
-// Database wrapper that uses PostgreSQL on Railway or SQLite locally
+// Database wrapper that uses Supabase, PostgreSQL on Railway, or SQLite locally
 
 let dbModule;
 
 async function initializeDbModule() {
+  const supabaseUrl = process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const isDatabaseUrl = !!process.env.DATABASE_URL;
 
-  if (isDatabaseUrl) {
+  if (supabaseUrl && supabaseKey) {
+    console.log('🌐 Using Supabase PostgreSQL');
+    dbModule = await import('./db-supabase.js');
+  } else if (isDatabaseUrl) {
     console.log('🔗 Using PostgreSQL (DATABASE_URL detected)');
     dbModule = await import('./db-postgres.js');
   } else {
