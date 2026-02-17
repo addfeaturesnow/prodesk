@@ -231,6 +231,9 @@ export default function EquipmentPage() {
                       <Button size="sm" onClick={() => handleSave(it.id)} disabled={savingId === it.id}>
                         {savingId === it.id ? 'Saving...' : 'Save'}
                       </Button>
+                      <Button size="sm" onClick={() => { setSelectedEquipment(it); setRentalForm({...rentalForm, quantity: 1, diver_id: '', check_in: new Date().toISOString().slice(0,10), check_out: new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10)}); setOpenRental(true); }}>
+                        Rent
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(it.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </div>
                   </td>
@@ -240,6 +243,92 @@ export default function EquipmentPage() {
           </table>
         )}
       </div>
+
+      {/* Active Rentals */}
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold mb-3">Active Rentals</h2>
+        {assignments.length === 0 ? (
+          <div className="text-muted-foreground">No active rentals</div>
+        ) : (
+          <div className="space-y-3">
+            {assignments.map((a) => (
+              <div key={a.id} className="p-3 border rounded flex items-center justify-between">
+                <div>
+                  <div className="font-medium">{a.equipment_name || a.equipment_id}</div>
+                  <div className="text-sm text-muted-foreground">Rented to: {divers.find(d=>d.id===a.diver_id)?.name || a.diver_name || 'Unknown'}</div>
+                  <div className="text-sm text-muted-foreground">{a.quantity} · {a.check_in} → {a.check_out}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={a.status === 'active' ? 'secondary' : 'destructive'}>{a.status}</Badge>
+                  <Button size="sm" variant="outline" onClick={() => handleReturnAssignment(a)}>Return</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Rental Dialog */}
+      <Dialog open={openRental} onOpenChange={setOpenRental}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rent Equipment{selectedEquipment ? ` — ${selectedEquipment.name}` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Diver</Label>
+              <Select value={rentalForm.diver_id} onValueChange={(v) => setRentalForm({...rentalForm, diver_id: v})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select diver..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {divers.map(d => (
+                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Quantity</Label>
+              <Input type="number" value={String(rentalForm.quantity)} onChange={(e) => setRentalForm({...rentalForm, quantity: Math.max(1, Number(e.target.value))})} className="w-40" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Check-in</Label>
+                <Input type="date" value={rentalForm.check_in} onChange={(e) => setRentalForm({...rentalForm, check_in: e.target.value})} />
+              </div>
+              <div>
+                <Label>Check-out</Label>
+                <Input type="date" value={rentalForm.check_out} onChange={(e) => setRentalForm({...rentalForm, check_out: e.target.value})} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpenRental(false)}>Cancel</Button>
+              <Button onClick={async () => {
+                if (!selectedEquipment) return;
+                if (!rentalForm.diver_id) { alert('Select a diver'); return; }
+                const max = selectedEquipment.quantity_available_for_rent ?? selectedEquipment.quantity_in_stock ?? 0;
+                if (rentalForm.quantity > max) { alert('Not enough available units'); return; }
+                try {
+                  await apiClient.rentalAssignments.create({ equipment_id: selectedEquipment.id, quantity: rentalForm.quantity, diver_id: rentalForm.diver_id, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                  const newAvail = Math.max(0, (selectedEquipment.quantity_available_for_rent || 0) - rentalForm.quantity);
+                  await apiClient.equipment.update(selectedEquipment.id, { quantity_available_for_rent: newAvail });
+                  await load();
+                  await loadAssignments();
+                  setOpenRental(false);
+                  alert('Rented successfully');
+                } catch (err) {
+                  console.error('Create rental failed', err);
+                  alert('Failed to create rental');
+                }
+              }}>Create Rental</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

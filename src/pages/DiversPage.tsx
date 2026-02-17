@@ -27,6 +27,7 @@ export default function DiversPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedDiver, setSelectedDiver] = useState<any>(null);
   const [selectedDiverBookings, setSelectedDiverBookings] = useState<any[]>([]);
+  const [selectedDiverAssignments, setSelectedDiverAssignments] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("summary");
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<any>({});
@@ -69,6 +70,10 @@ export default function DiversPage() {
         allBookings.filter((b: any) => b.diver_id === diver.id || b.divers?.id === diver.id) : 
         [];
       setSelectedDiverBookings(diverBookings);
+      // Fetch rental assignments and filter by diver
+      const allAssignments = await apiClient.rentalAssignments.list('').catch(() => []);
+      const diverAssigns = Array.isArray(allAssignments) ? allAssignments.filter((a:any) => a.diver_id === diver.id) : [];
+      setSelectedDiverAssignments(diverAssigns);
     } catch (err) {
       console.error('Failed to load diver bookings', err);
     }
