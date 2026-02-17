@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/integrations/api/client';
+import { useToast } from '@/hooks/use-toast';
 import { Trash2, Plus, Save } from 'lucide-react';
 
 export default function EquipmentPage() {
@@ -43,7 +44,21 @@ export default function EquipmentPage() {
   };
 
   useEffect(() => { load(); }, []);
+  
+  const { toast } = useToast();
 
+  const openRentalFor = async (it: any) => {
+    setSelectedEquipment(it);
+    setRentalForm({ ...rentalForm, quantity: 1, diver_id: '', check_in: new Date().toISOString().slice(0,10), check_out: new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10) });
+    try {
+      const diverData = await apiClient.divers.list().catch(() => []);
+      setDivers(Array.isArray(diverData) ? diverData : []);
+    } catch (err) {
+      console.error('Failed to load divers for rental dialog', err);
+      toast({ title: 'Error', description: 'Failed to load divers', variant: 'destructive' });
+    }
+    setOpenRental(true);
+  };
   const loadAssignments = async () => {
     try {
       const data = await apiClient.rentalAssignments.list('');
@@ -151,10 +166,10 @@ export default function EquipmentPage() {
       await load();
       await loadAssignments();
       window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
-      alert('Checked out');
+      toast({ title: 'Checked out', description: `Checked out ${qty} x ${it.name}` });
     } catch (err) {
       console.error('Checkout failed', err);
-      alert('Failed to check out');
+      toast({ title: 'Error', description: String(err), variant: 'destructive' });
     }
   };
 
@@ -169,10 +184,10 @@ export default function EquipmentPage() {
       await load();
       await loadAssignments();
       window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
-      alert('Returned');
+      toast({ title: 'Returned', description: `Returned ${assignment.quantity} x ${assignment.equipment_name || assignment.equipment_id}` });
     } catch (err) {
       console.error('Return failed', err);
-      alert('Failed to return');
+      toast({ title: 'Error', description: String(err), variant: 'destructive' });
     }
   };
 
@@ -234,7 +249,7 @@ export default function EquipmentPage() {
                       <Button size="sm" onClick={() => handleSave(it.id)} disabled={savingId === it.id}>
                         {savingId === it.id ? 'Saving...' : 'Save'}
                       </Button>
-                      <Button size="sm" onClick={() => { setSelectedEquipment(it); setRentalForm({...rentalForm, quantity: 1, diver_id: '', check_in: new Date().toISOString().slice(0,10), check_out: new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10)}); setOpenRental(true); }}>
+                      <Button size="sm" onClick={() => openRentalFor(it)}>
                         Rent
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(it.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
@@ -286,7 +301,7 @@ export default function EquipmentPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {divers.map(d => (
-                    <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -308,25 +323,25 @@ export default function EquipmentPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpenRental(false)}>Cancel</Button>
-                  <Button onClick={async () => {
+              <Button onClick={async () => {
                 if (!selectedEquipment) return;
-                if (!rentalForm.diver_id) { alert('Select a diver'); return; }
+                if (!rentalForm.diver_id) { toast({ title: 'Error', description: 'Select a diver', variant: 'destructive' }); return; }
                 const max = selectedEquipment.quantity_available_for_rent ?? selectedEquipment.quantity_in_stock ?? 0;
-                if (rentalForm.quantity > max) { alert('Not enough available units'); return; }
+                if (rentalForm.quantity > max) { toast({ title: 'Error', description: 'Not enough available units', variant: 'destructive' }); return; }
                 try {
-                  await apiClient.rentalAssignments.create({ equipment_id: selectedEquipment.id, quantity: rentalForm.quantity, diver_id: rentalForm.diver_id, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                  await apiClient.rentalAssignments.create({ equipment_id: selectedEquipment.id, quantity: rentalForm.quantity, diver_id: Number(rentalForm.diver_id), check_in: rentalForm.check_in, check_out: rentalForm.check_out });
                   const newAvail = Math.max(0, (selectedEquipment.quantity_available_for_rent || 0) - rentalForm.quantity);
                   await apiClient.equipment.update(selectedEquipment.id, { quantity_available_for_rent: newAvail });
                   await load();
-                      await loadAssignments();
-                      window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
-                      setOpenRental(false);
-                      alert('Rented successfully');
+                  await loadAssignments();
+                  window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
+                  setOpenRental(false);
+                  toast({ title: 'Rented', description: `Rented ${rentalForm.quantity} x ${selectedEquipment.name}` });
                 } catch (err) {
                   console.error('Create rental failed', err);
-                  alert('Failed to create rental');
+                  toast({ title: 'Error', description: String(err), variant: 'destructive' });
                 }
               }}>Create Rental</Button>
             </div>
