@@ -1260,18 +1260,49 @@ app.put('/api/equipment/:id', (req, res) => {
 // DELETE /api/equipment/:id - soft delete equipment
 app.delete('/api/equipment/:id', (req, res) => {
   const { id } = req.params;
+  const {
+    name, category, sku, price, can_buy, can_rent, rent_price_per_day,
+    quantity_in_stock, quantity_available_for_rent, reorder_level, supplier, description, barcode
+  } = req.body;
+
   const db = getDb();
-  db.run('DELETE FROM equipment WHERE id = ?', [id], (err) => {
-    db.close();
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
+  // Read existing equipment and merge fields to avoid overwriting required NOT NULL columns with null
+  db.get('SELECT * FROM equipment WHERE id = ?', [id], (err, existing) => {
+    if (err) {
+      db.close();
+      return res.status(500).json({ error: err.message });
+    }
+    if (!existing) {
+      db.close();
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+
+    const merged = {
+      name: name !== undefined ? name : existing.name,
+      category: category !== undefined ? category : existing.category,
+      sku: sku !== undefined ? sku : existing.sku,
+      price: price !== undefined ? price : existing.price,
+      can_buy: can_buy !== undefined ? (can_buy ? 1 : 0) : existing.can_buy,
+      can_rent: can_rent !== undefined ? (can_rent ? 1 : 0) : existing.can_rent,
+      rent_price_per_day: rent_price_per_day !== undefined ? rent_price_per_day : existing.rent_price_per_day,
+      quantity_in_stock: quantity_in_stock !== undefined ? quantity_in_stock : existing.quantity_in_stock,
+      quantity_available_for_rent: quantity_available_for_rent !== undefined ? quantity_available_for_rent : existing.quantity_available_for_rent,
+      reorder_level: reorder_level !== undefined ? reorder_level : existing.reorder_level,
+      supplier: supplier !== undefined ? supplier : existing.supplier,
+      description: description !== undefined ? description : existing.description,
+      barcode: barcode !== undefined ? barcode : existing.barcode,
+    };
+
+    db.run(
+      'UPDATE equipment SET name = ?, category = ?, sku = ?, price = ?, can_buy = ?, can_rent = ?, rent_price_per_day = ?, quantity_in_stock = ?, quantity_available_for_rent = ?, reorder_level = ?, supplier = ?, description = ?, barcode = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [merged.name, merged.category, merged.sku || null, merged.price || 0, merged.can_buy, merged.can_rent, merged.rent_price_per_day || 0, merged.quantity_in_stock || 0, merged.quantity_available_for_rent || 0, merged.reorder_level || 5, merged.supplier || null, merged.description || null, merged.barcode || null, id],
+      (err2) => {
+        db.close();
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ ok: true });
+      }
+    );
   });
-});
-
-// ========== TRANSACTION / POS ENDPOINTS ==========
-
-// GET /api/transactions - list all transactions
-app.get('/api/transactions', (req, res) => {
   const db = getDb();
   db.all(`
     SELECT 
@@ -1493,9 +1524,12 @@ app.get('/api/rental-assignments', (req, res) => {
     SELECT 
       ra.id, ra.booking_id, ra.equipment_id, ra.quantity, ra.check_in, ra.check_out,
       ra.status, ra.notes, ra.created_at,
-      e.name as equipment_name, e.category, e.sku, e.rent_price_per_day
+      e.name as equipment_name, e.category, e.sku, e.rent_price_per_day,
+      b.diver_id as diver_id, d.name as diver_name
     FROM rental_assignments ra
     LEFT JOIN equipment e ON ra.equipment_id = e.id
+    LEFT JOIN bookings b ON ra.booking_id = b.id
+    LEFT JOIN divers d ON b.diver_id = d.id
   `;
   
   let params = [];

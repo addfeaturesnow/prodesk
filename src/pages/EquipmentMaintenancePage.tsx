@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiClient } from '@/integrations/api/client';
 import { 
@@ -17,6 +19,11 @@ export default function EquipmentMaintenancePage() {
   const [loading, setLoading] = useState(true);
   const [edits, setEdits] = useState<Record<string, any>>({});
   const [assignments, setAssignments] = useState<any[]>([]);
+  const [divers, setDivers] = useState<any[]>([]);
+  const [openRental, setOpenRental] = useState(false);
+  const [selectedEquipmentForRental, setSelectedEquipmentForRental] = useState<any>(null);
+  const [rentalForm, setRentalForm] = useState({ diver_id: '', quantity: 1, check_in: new Date().toISOString().slice(0,10), check_out: new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10) });
+  const { toast } = useToast();
   const [savingId, setSavingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('inventory');
   const [filter, setFilter] = useState('All');
@@ -138,28 +145,17 @@ export default function EquipmentMaintenancePage() {
     return assignments.filter(a => a.equipment_id === id && a.status === 'active').reduce((s, a) => s + (a.quantity || 0), 0);
   };
 
-  const handleCheckOut = async (it: any) => {
-    const max = it.quantity_available_for_rent ?? it.quantity_in_stock ?? 0;
-    const qStr = window.prompt(`Quantity to check out (max ${max}):`, '1');
-    if (!qStr) return;
-    const qty = Math.max(1, Number(qStr));
-    if (qty > max) { alert('Not enough available units'); return; }
-    const bookingId = window.prompt('Booking ID (optional):', '');
-    const checkIn = window.prompt('Check-in date (YYYY-MM-DD):', new Date().toISOString().slice(0,10));
-    const checkOut = window.prompt('Check-out date (YYYY-MM-DD):', new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10));
+  const openRentalFor = async (it: any) => {
+    setSelectedEquipmentForRental(it);
+    setRentalForm({ diver_id: '', quantity: 1, check_in: new Date().toISOString().slice(0,10), check_out: new Date(Date.now()+24*60*60*1000).toISOString().slice(0,10) });
     try {
-      const payload: any = { equipment_id: it.id, quantity: qty, check_in: checkIn, check_out: checkOut };
-      if (bookingId) payload.booking_id = bookingId;
-      const res = await apiClient.rentalAssignments.create(payload);
-      const newAvail = (it.quantity_available_for_rent || 0) - qty;
-      await apiClient.equipment.update(it.id, { quantity_available_for_rent: Math.max(0, newAvail) });
-      await load();
-      await loadAssignments();
-      alert('Checked out');
+      const diverData = await apiClient.divers.list().catch(() => []);
+      setDivers(Array.isArray(diverData) ? diverData : []);
     } catch (err) {
-      console.error('Checkout failed', err);
-      alert('Failed to check out');
+      console.error('Failed to load divers for rental dialog', err);
+      toast({ title: 'Error', description: 'Failed to load divers', variant: 'destructive' });
     }
+    setOpenRental(true);
   };
 
   const handleReturnAssignment = async (assignment: any) => {
@@ -168,7 +164,8 @@ export default function EquipmentMaintenancePage() {
       await apiClient.rentalAssignments.delete(assignment.id);
       const eq = items.find(i => i.id === assignment.equipment_id);
       const newAvail = (eq.quantity_available_for_rent || 0) + (assignment.quantity || 0);
-      await apiClient.equipment.update(assignment.equipment_id, { quantity_available_for_rent: newAvail });
+      const merged = { ...eq, quantity_available_for_rent: newAvail };
+      await apiClient.equipment.update(assignment.equipment_id, merged);
       await load();
       await loadAssignments();
       alert('Returned');
@@ -320,7 +317,7 @@ export default function EquipmentMaintenancePage() {
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleCheckOut(it)}
+                            onClick={() => openRentalFor(it)}
                             disabled={getStatus(it) !== 'Available'}
                             className="flex-1"
                           >
@@ -379,6 +376,85 @@ export default function EquipmentMaintenancePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Rental Dialog */}
+      <Dialog open={openRental} onOpenChange={setOpenRental}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rent Equipment{selectedEquipmentForRental ? ` — ${selectedEquipmentForRental.name}` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Diver</Label>
+              <Select value={rentalForm.diver_id} onValueChange={(v) => setRentalForm({...rentalForm, diver_id: v})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select diver..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {divers.map(d => (
+                    <SelectItem key={d.id} value={String(d.id)}>{d.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Quantity</Label>
+              <Input type="number" value={String(rentalForm.quantity)} onChange={(e) => setRentalForm({...rentalForm, quantity: Math.max(1, Number(e.target.value))})} className="w-40" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Check-in</Label>
+                <Input type="date" value={rentalForm.check_in} onChange={(e) => setRentalForm({...rentalForm, check_in: e.target.value})} />
+              </div>
+              <div>
+                <Label>Check-out</Label>
+                <Input type="date" value={rentalForm.check_out} onChange={(e) => setRentalForm({...rentalForm, check_out: e.target.value})} />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpenRental(false)}>Cancel</Button>
+              <Button onClick={async () => {
+                if (!selectedEquipmentForRental) return;
+                if (!rentalForm.diver_id) { toast({ title: 'Error', description: 'Select a diver', variant: 'destructive' }); return; }
+                const max = selectedEquipmentForRental.quantity_available_for_rent ?? selectedEquipmentForRental.quantity_in_stock ?? 0;
+                if (rentalForm.quantity > max) { toast({ title: 'Error', description: 'Not enough available units', variant: 'destructive' }); return; }
+                try {
+                  // ensure booking exists (use string diver_id)
+                  const diverId = rentalForm.diver_id;
+                  let bookingId = null;
+                  try {
+                    const allBookings = await apiClient.bookings.list().catch(() => []);
+                    const diverBookings = Array.isArray(allBookings) ? allBookings.filter((b: any) => String(b.diver_id) === String(diverId)) : [];
+                    if (diverBookings.length > 0) bookingId = diverBookings[0].id;
+                  } catch (err) {}
+
+                  if (!bookingId) {
+                    const bk = await apiClient.bookings.create({ diver_id: diverId, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                    bookingId = bk.id;
+                  }
+
+                  await apiClient.rentalAssignments.create({ booking_id: bookingId, equipment_id: selectedEquipmentForRental.id, quantity: rentalForm.quantity, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                  const newAvail = Math.max(0, (selectedEquipmentForRental.quantity_available_for_rent || 0) - rentalForm.quantity);
+                  const existingEq = items.find(i => i.id === selectedEquipmentForRental.id) || selectedEquipmentForRental;
+                  const merged = { ...existingEq, quantity_available_for_rent: newAvail };
+                  await apiClient.equipment.update(selectedEquipmentForRental.id, merged);
+                  await load();
+                  await loadAssignments();
+                  window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
+                  setOpenRental(false);
+                  toast({ title: 'Rented', description: `Rented ${rentalForm.quantity} x ${selectedEquipmentForRental.name}` });
+                } catch (err) {
+                  console.error('Create rental failed', err);
+                  toast({ title: 'Error', description: String(err), variant: 'destructive' });
+                }
+              }}>Create Rental</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

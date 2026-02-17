@@ -160,9 +160,11 @@ export default function EquipmentPage() {
       const payload: any = { equipment_id: it.id, quantity: qty, check_in: checkIn, check_out: checkOut };
       if (bookingId) payload.booking_id = bookingId;
       const res = await apiClient.rentalAssignments.create(payload);
-      // decrement available
+      // decrement available (send full merged payload)
       const newAvail = (it.quantity_available_for_rent || 0) - qty;
-      await apiClient.equipment.update(it.id, { quantity_available_for_rent: Math.max(0, newAvail) });
+      const existing = items.find(e => e.id === it.id) || it;
+      const merged = { ...existing, quantity_available_for_rent: Math.max(0, newAvail) };
+      await apiClient.equipment.update(it.id, merged);
       await load();
       await loadAssignments();
       window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
@@ -180,7 +182,8 @@ export default function EquipmentPage() {
       // increment available on equipment
       const eq = items.find(i => i.id === assignment.equipment_id);
       const newAvail = (eq.quantity_available_for_rent || 0) + (assignment.quantity || 0);
-      await apiClient.equipment.update(assignment.equipment_id, { quantity_available_for_rent: newAvail });
+      const mergedEq = { ...eq, quantity_available_for_rent: newAvail };
+      await apiClient.equipment.update(assignment.equipment_id, mergedEq);
       await load();
       await loadAssignments();
       window.dispatchEvent(new Event('rentalAssignmentsUpdated'));
@@ -331,9 +334,31 @@ export default function EquipmentPage() {
                 const max = selectedEquipment.quantity_available_for_rent ?? selectedEquipment.quantity_in_stock ?? 0;
                 if (rentalForm.quantity > max) { toast({ title: 'Error', description: 'Not enough available units', variant: 'destructive' }); return; }
                 try {
-                  await apiClient.rentalAssignments.create({ equipment_id: selectedEquipment.id, quantity: rentalForm.quantity, diver_id: Number(rentalForm.diver_id), check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                  // Backend requires a booking_id. Try to find an existing booking for the diver first.
+                  const diverId = rentalForm.diver_id;
+                  let bookingId: string | null = null;
+                  try {
+                    const allBookings = await apiClient.bookings.list().catch(() => []);
+                    const diverBookings = Array.isArray(allBookings) ? allBookings.filter((b: any) => String(b.diver_id) === String(diverId)) : [];
+                    if (diverBookings.length > 0) {
+                      bookingId = diverBookings[0].id;
+                    }
+                  } catch (err) {
+                    // ignore
+                  }
+
+                  if (!bookingId) {
+                    // create a lightweight booking for this diver so rental can be associated
+                    const bk = await apiClient.bookings.create({ diver_id: diverId, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+                    bookingId = bk.id;
+                  }
+
+                  await apiClient.rentalAssignments.create({ booking_id: bookingId, equipment_id: selectedEquipment.id, quantity: rentalForm.quantity, check_in: rentalForm.check_in, check_out: rentalForm.check_out });
+
                   const newAvail = Math.max(0, (selectedEquipment.quantity_available_for_rent || 0) - rentalForm.quantity);
-                  await apiClient.equipment.update(selectedEquipment.id, { quantity_available_for_rent: newAvail });
+                  const existingEq = items.find(i => i.id === selectedEquipment.id) || selectedEquipment;
+                  const mergedEq = { ...existingEq, quantity_available_for_rent: newAvail };
+                  await apiClient.equipment.update(selectedEquipment.id, mergedEq);
                   await load();
                   await loadAssignments();
                   window.dispatchEvent(new Event('rentalAssignmentsUpdated'));

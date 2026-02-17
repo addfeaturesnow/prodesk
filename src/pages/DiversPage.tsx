@@ -72,7 +72,7 @@ export default function DiversPage() {
       setSelectedDiverBookings(diverBookings);
       // Fetch rental assignments and filter by diver
       const allAssignments = await apiClient.rentalAssignments.list('').catch(() => []);
-      const diverAssigns = Array.isArray(allAssignments) ? allAssignments.filter((a:any) => a.diver_id === diver.id) : [];
+      const diverAssigns = Array.isArray(allAssignments) ? allAssignments.filter((a:any) => String(a.diver_id) === String(diver.id) || String(a.diver_name) === String(diver.name)) : [];
       setSelectedDiverAssignments(diverAssigns);
     } catch (err) {
       console.error('Failed to load diver bookings', err);
