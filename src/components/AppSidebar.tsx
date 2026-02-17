@@ -15,7 +15,6 @@ import {
 
 const mainLinks = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/trips", label: "Trips", icon: Calendar },
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/dive-logs", label: "Dive Logs", icon: BookOpen },
   { to: "/divers", label: "Divers", icon: Users },
