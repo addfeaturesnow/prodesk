@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { apiClient } from '@/integrations/api/client';
 import { Checkbox } from '@/components/ui/checkbox';
 
+const isBrowser = typeof window !== 'undefined';
+const isDevelopment = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_BASE_URL = isDevelopment ? 'http://localhost:3000' : '';
+
 interface DiveSite {
   id: string;
   name: string;
@@ -78,26 +82,35 @@ export default function CreateSchedulePage() {
     }
 
     try {
-      const res = await fetch('/api/schedules', {
+      const scheduleData = {
+        name: form.scheduleName,
+        departure_time: form.departureTime,
+        departure_location: form.departureLocation,
+        boat_id: form.boat === 'no-boat' ? null : form.boat,
+        number_of_dives: parseInt(form.numberOfDives),
+        start_date: form.startDate,
+        end_date: form.endDate || null,
+        days_ahead: parseInt(form.daysAhead),
+        days_of_week: form.daysOfWeek,
+        dive_sites: null, // Send null for now since diveSites is just text
+        products: form.products || null,
+      };
+
+      console.log('Sending schedule data:', scheduleData);
+
+      const res = await fetch(`${API_BASE_URL}/api/schedules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          name: form.scheduleName,
-          departure_time: form.departureTime,
-          departure_location: form.departureLocation,
-          boat_id: form.boat === 'no-boat' ? null : form.boat,
-          number_of_dives: parseInt(form.numberOfDives),
-          start_date: form.startDate,
-          end_date: form.endDate,
-          days_ahead: parseInt(form.daysAhead),
-          days_of_week: form.daysOfWeek,
-          dive_sites: form.diveSites || null,
-          products: form.products || null,
-        }),
+        body: JSON.stringify(scheduleData),
       });
 
-      if (!res.ok) throw new Error('Failed to create schedule');
+      const responseData = await res.json();
+      console.log('Response:', responseData);
+
+      if (!res.ok) {
+        throw new Error(responseData.error || 'Failed to create schedule');
+      }
 
       toast({
         title: 'Success',
@@ -109,7 +122,7 @@ export default function CreateSchedulePage() {
       console.error('Failed to save:', err);
       toast({
         title: 'Error',
-        description: 'Failed to create schedule',
+        description: err instanceof Error ? err.message : 'Failed to create schedule',
         variant: 'destructive',
       });
     }

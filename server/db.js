@@ -298,6 +298,49 @@ export function initDb() {
           FOREIGN KEY(booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
           FOREIGN KEY(equipment_id) REFERENCES equipment(id) ON DELETE RESTRICT
         )
+      `);
+
+      // Trips table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS trips (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          type TEXT DEFAULT 'regular',
+          start_at TEXT NOT NULL,
+          dive_site_id TEXT,
+          boat_id TEXT,
+          captain_id TEXT,
+          number_of_dives INTEGER DEFAULT 1,
+          boat_staff TEXT,
+          products TEXT,
+          description TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(dive_site_id) REFERENCES dive_sites(id) ON DELETE SET NULL,
+          FOREIGN KEY(boat_id) REFERENCES boats(id) ON DELETE SET NULL,
+          FOREIGN KEY(captain_id) REFERENCES instructors(id) ON DELETE SET NULL
+        )
+      `);
+
+      // Schedules table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS schedules (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          departure_time TEXT,
+          departure_location TEXT,
+          boat_id TEXT,
+          number_of_dives INTEGER DEFAULT 1,
+          start_date TEXT NOT NULL,
+          end_date TEXT,
+          days_ahead INTEGER DEFAULT 30,
+          days_of_week TEXT,
+          dive_sites TEXT,
+          products TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY(boat_id) REFERENCES boats(id) ON DELETE SET NULL
+        )
       `, (err) => {
         if (err) {
           db.close();

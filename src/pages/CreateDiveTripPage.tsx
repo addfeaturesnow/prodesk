@@ -9,6 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Settings } from 'lucide-react';
 import { apiClient } from '@/integrations/api/client';
 
+const isBrowser = typeof window !== 'undefined';
+const isDevelopment = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_BASE_URL = isDevelopment ? 'http://localhost:3000' : '';
+
 interface DiveSite {
   id: string;
   name: string;
@@ -77,24 +81,33 @@ export default function CreateDiveTripPage() {
     }
 
     try {
-      const res = await fetch('/api/trips', {
+      const tripData = {
+        name: form.name,
+        type: form.tripType,
+        start_at: form.departureTime,
+        dive_site_id: null, // Send null for now since diveSites is just text
+        boat_id: form.boat && form.boat !== 'no-boat' ? form.boat : null,
+        captain_id: form.captain && form.captain !== 'select-captain' ? form.captain : null,
+        number_of_dives: parseInt(form.numberOfDives),
+        boat_staff: form.boatStaff || null,
+        products: form.products || null,
+      };
+
+      console.log('Sending trip data:', tripData);
+
+      const res = await fetch(`${API_BASE_URL}/api/trips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          name: form.name,
-          type: form.tripType,
-          start_at: form.departureTime,
-          dive_site_id: form.diveSites || null,
-          boat_id: form.boat || null,
-          captain_id: form.captain || null,
-          number_of_dives: parseInt(form.numberOfDives),
-          boat_staff: form.boatStaff || null,
-          products: form.products || null,
-        }),
+        body: JSON.stringify(tripData),
       });
 
-      if (!res.ok) throw new Error('Failed to create trip');
+      const responseData = await res.json();
+      console.log('Response:', responseData);
+
+      if (!res.ok) {
+        throw new Error(responseData.error || 'Failed to create trip');
+      }
 
       toast({
         title: 'Success',
@@ -106,7 +119,7 @@ export default function CreateDiveTripPage() {
       console.error('Failed to save:', err);
       toast({
         title: 'Error',
-        description: 'Failed to create dive trip',
+        description: err instanceof Error ? err.message : 'Failed to create dive trip',
         variant: 'destructive',
       });
     }

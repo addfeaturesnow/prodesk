@@ -995,6 +995,119 @@ app.post('/api/groups/:id/itinerary', (req, res) => {
   });
 });
 
+// ========== TRIPS ENDPOINTS ==========
+
+// GET /api/trips - list all trips
+app.get('/api/trips', (req, res) => {
+  const db = getDb();
+  db.all(`
+    SELECT t.id, t.name, t.type, t.start_at, t.dive_site_id, t.boat_id, t.captain_id, t.number_of_dives, t.boat_staff, t.products, t.description, t.created_at, t.updated_at,
+           ds.name as site_name, ds.location as site_location,
+           b.name as boat_name,
+           i.name as captain_name
+    FROM trips t
+    LEFT JOIN dive_sites ds ON t.dive_site_id = ds.id
+    LEFT JOIN boats b ON t.boat_id = b.id
+    LEFT JOIN instructors i ON t.captain_id = i.id
+    ORDER BY t.start_at DESC
+  `, (err, trips) => {
+    db.close();
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(trips || []);
+  });
+});
+
+// POST /api/trips - create a trip
+app.post('/api/trips', (req, res) => {
+  const { name, type, start_at, dive_site_id, boat_id, captain_id, number_of_dives, boat_staff, products, description } = req.body;
+  
+  if (!name || !start_at) {
+    return res.status(400).json({ error: 'name and start_at are required' });
+  }
+
+  const id = uuidv4();
+  const db = getDb();
+
+  db.run(
+    `INSERT INTO trips (id, name, type, start_at, dive_site_id, boat_id, captain_id, number_of_dives, boat_staff, products, description)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, type || 'regular', start_at, dive_site_id || null, boat_id || null, captain_id || null, number_of_dives || 1, boat_staff || null, products || null, description || null],
+    (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+
+      db.get(`
+        SELECT t.id, t.name, t.type, t.start_at, t.dive_site_id, t.boat_id, t.captain_id, t.number_of_dives, t.boat_staff, t.products, t.description, t.created_at, t.updated_at,
+               ds.name as site_name, ds.location as site_location,
+               b.name as boat_name,
+               i.name as captain_name
+        FROM trips t
+        LEFT JOIN dive_sites ds ON t.dive_site_id = ds.id
+        LEFT JOIN boats b ON t.boat_id = b.id
+        LEFT JOIN instructors i ON t.captain_id = i.id
+        WHERE t.id = ?
+      `, [id], (err, trip) => {
+        db.close();
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(trip);
+      });
+    }
+  );
+});
+
+// ========== SCHEDULES ENDPOINTS ==========
+
+// GET /api/schedules - list all schedules
+app.get('/api/schedules', (req, res) => {
+  const db = getDb();
+  db.all(`
+    SELECT id, name, departure_time, departure_location, boat_id, number_of_dives, start_date, end_date, days_ahead, days_of_week, dive_sites, products, created_at, updated_at
+    FROM schedules
+    ORDER BY start_date DESC
+  `, (err, schedules) => {
+    db.close();
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(schedules || []);
+  });
+});
+
+// POST /api/schedules - create a schedule
+app.post('/api/schedules', (req, res) => {
+  const { name, departure_time, departure_location, boat_id, number_of_dives, start_date, end_date, days_ahead, days_of_week, dive_sites, products } = req.body;
+  
+  if (!name || !start_date) {
+    return res.status(400).json({ error: 'name and start_date are required' });
+  }
+
+  const id = uuidv4();
+  const db = getDb();
+
+  db.run(
+    `INSERT INTO schedules (id, name, departure_time, departure_location, boat_id, number_of_dives, start_date, end_date, days_ahead, days_of_week, dive_sites, products)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, name, departure_time || null, departure_location || null, boat_id || null, number_of_dives || 1, start_date, end_date || null, days_ahead || 30, JSON.stringify(days_of_week) || null, dive_sites || null, products || null],
+    (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+
+      db.get(
+        `SELECT id, name, departure_time, departure_location, boat_id, number_of_dives, start_date, end_date, days_ahead, days_of_week, dive_sites, products, created_at, updated_at
+         FROM schedules WHERE id = ?`,
+        [id],
+        (err, schedule) => {
+          db.close();
+          if (err) return res.status(500).json({ error: err.message });
+          res.json(schedule);
+        }
+      );
+    }
+  );
+});
+
 // ========== EQUIPMENT / INVENTORY ENDPOINTS ==========
 
 // GET /api/equipment - list all equipment
