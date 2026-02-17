@@ -101,15 +101,24 @@ export default function CreateSchedulePage() {
       const res = await fetch(`${API_BASE_URL}/api/schedules`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify(scheduleData),
       });
 
-      const responseData = await res.json();
-      console.log('Response:', responseData);
+      console.log('Response status:', res.status);
+
+      let responseData;
+      try {
+        responseData = await res.json();
+        console.log('Response data:', responseData);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        const text = await res.text();
+        console.error('Response text:', text);
+        throw new Error(`Invalid response from server: ${res.status}`);
+      }
 
       if (!res.ok) {
-        throw new Error(responseData.error || 'Failed to create schedule');
+        throw new Error(responseData?.error || responseData?.message || `Failed to create schedule (${res.status})`);
       }
 
       toast({

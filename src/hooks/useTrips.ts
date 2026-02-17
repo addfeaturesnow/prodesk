@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { apiClient } from '@/integrations/api/client';
+
+const isBrowser = typeof window !== 'undefined';
+const isDevelopment = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_BASE_URL = isDevelopment ? 'http://localhost:3000' : '';
 
 export function useTrips() {
   const [trips, setTrips] = useState<any[]>([]);
@@ -9,10 +13,21 @@ export function useTrips() {
     let mounted = true;
     async function load() {
       setLoading(true);
-      const { data, error } = await supabase.from('trips').select('*').order('start_at', { ascending: true });
-      if (!mounted) return;
-      if (!error && data) setTrips(data);
-      setLoading(false);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/trips`, {
+          headers: { 'x-user-id': 'user-1' },
+        });
+        const data = await res.json();
+        if (mounted && Array.isArray(data)) {
+          setTrips(data);
+        }
+      } catch (err) {
+        console.error('Failed to load trips:', err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     }
     load();
     return () => { mounted = false; };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,7 @@ interface DailySummaryProps {
 }
 
 export default function DailySummary({ currentDate: propCurrentDate, onDateChange }: DailySummaryProps) {
+  const navigate = useNavigate();
   const [internalCurrentDate, setInternalCurrentDate] = useState(new Date(2026, 1, 16)); // February 16, 2026
   const currentDate = propCurrentDate || internalCurrentDate;
   const setCurrentDate = onDateChange || setInternalCurrentDate;
@@ -130,7 +132,7 @@ export default function DailySummary({ currentDate: propCurrentDate, onDateChang
                           <span>{trip.location}</span>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => navigate('/calendar')}>
                         View Details
                       </Button>
                     </div>
@@ -169,10 +171,10 @@ export default function DailySummary({ currentDate: propCurrentDate, onDateChang
                       <div className="text-sm text-muted-foreground">{diver.level}</div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => alert('Assign functionality coming soon')}>
                         Assign
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => navigate('/divers')}>
                         Profile
                       </Button>
                     </div>
