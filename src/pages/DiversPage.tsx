@@ -537,15 +537,29 @@ export default function DiversPage() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Equipment Rentals</h3>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Equipment
-                </Button>
+                <div>
+                  <Button size="sm" onClick={() => window.location.href = '/equipment'}>
+                    Manage Equipment
+                  </Button>
+                </div>
               </div>
-              <div className="text-center py-8 text-muted-foreground">
-                <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No equipment rentals yet. Add rentals to track equipment usage for this diver.</p>
-              </div>
+              {selectedDiverAssignments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">No rentals for this diver.</div>
+              ) : (
+                <div className="space-y-3">
+                  {selectedDiverAssignments.map((a) => (
+                    <div key={a.id} className="border rounded p-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-medium">{a.equipment_name || a.equipment_id}</div>
+                          <div className="text-sm text-muted-foreground">{a.quantity} · {a.check_in} → {a.check_out}</div>
+                        </div>
+                        <Badge variant={a.status === 'active' ? 'secondary' : 'destructive'}>{a.status}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </TabsContent>
 
