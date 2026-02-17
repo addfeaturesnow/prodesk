@@ -20,16 +20,6 @@ import { useTrips } from '@/hooks/useTrips';
 import { useIncidents } from '@/hooks/useIncidents';
 import { apiClient } from '@/integrations/api/client';
 import { useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 interface CalendarEvent {
@@ -48,41 +38,9 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [showCreateTripModal, setShowCreateTripModal] = useState(false);
-  const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
   const [diveSites, setDiveSites] = useState<any[]>([]);
   const [boats, setBoats] = useState<any[]>([]);
   const [instructors, setInstructors] = useState<any[]>([]);
-  const [tripForm, setTripForm] = useState({
-    name: '',
-    tripType: 'regular',
-    departureTime: new Date().toISOString().slice(0, 16),
-    diveSiteId: '',
-    boatId: '',
-    captainId: '',
-    numberOfDives: '1',
-  });
-  const [scheduleForm, setScheduleForm] = useState({
-    scheduleName: '',
-    departureTime: '09:00',
-    departureLocation: '',
-    boat: '',
-    numberOfDives: '0',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    daysAhead: '30',
-    daysOfWeek: {
-      sunday: false,
-      monday: false,
-      tuesday: false,
-      wednesday: false,
-      thursday: false,
-      friday: false,
-      saturday: false,
-    },
-    diveSites: '',
-    products: '',
-  });
   const { trips } = useTrips();
   const { incidents } = useIncidents();
   const { toast } = useToast();
@@ -204,88 +162,34 @@ export default function CalendarPage() {
     return eventsByDate.get(dateStr) || [];
   };
 
-  const handleCreateTrip = async () => {
-    if (!tripForm.name || !tripForm.departureTime || !tripForm.diveSiteId) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/trips', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: tripForm.name,
-          type: tripForm.tripType,
-          start_at: tripForm.departureTime,
-          dive_site_id: tripForm.diveSiteId,
-          boat_id: tripForm.boatId || null,
-          captain_id: tripForm.captainId || null,
-          number_of_dives: parseInt(tripForm.numberOfDives),
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to create trip');
-
-      toast({
-        title: 'Success',
-        description: 'Dive trip created successfully',
-      });
-
-      setShowCreateTripModal(false);
-      setTripForm({
-        name: '',
-        tripType: 'regular',
-        departureTime: new Date().toISOString().slice(0, 16),
-        diveSiteId: '',
-        boatId: '',
-        captainId: '',
-        numberOfDives: '1',
-      });
-
-      // Reload events
-      window.location.reload();
-    } catch (err) {
-      console.error('Failed to create trip:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to create dive trip',
-        variant: 'destructive',
-      });
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
-          <p className="text-muted-foreground">Bookings, courses, staff, and incidents</p>
+          <p className="text-muted-foreground">Bookings and dive trips overview</p>
         </div>
 
-        {/* Create Dive Trip Button */}
-        <Button 
-          className="gap-2"
-          onClick={() => navigate('/create-dive-trip')}
-        >
-          <Plus className="w-4 h-4" />
-          Create Dive Trip
-        </Button>
+        <div className="flex gap-2">
+          {/* Create Dive Trip Schedule Button */}
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={() => navigate('/create-schedule')}
+          >
+            <Plus className="w-4 h-4" />
+            Create Trip Schedule
+          </Button>
 
-        {/* Create Dive Trip Schedule Button */}
-        <Button 
-          variant="outline" 
-          className="gap-2"
-          onClick={() => navigate('/create-schedule')}
-        >
-          <Plus className="w-4 h-4" />
-          Create Schedule
-        </Button>
+          {/* Create Dive Trip Button */}
+          <Button 
+            className="gap-2"
+            onClick={() => navigate('/create-dive-trip')}
+          >
+            <Plus className="w-4 h-4" />
+            Create Dive Trip
+          </Button>
+        </div>
       </div>
 
       {loading && (
@@ -445,10 +349,10 @@ export default function CalendarPage() {
                   <Badge className="bg-blue-100 text-blue-800 border-blue-300">Booking</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-100 text-green-800 border-green-300">Course</Badge>
+                  <Badge className="bg-purple-100 text-purple-800 border-purple-300">Dive Trip</Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-purple-100 text-purple-800 border-purple-300">Trip</Badge>
+                  <Badge className="bg-green-100 text-green-800 border-green-300">Course</Badge>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-red-100 text-red-800 border-red-300">Incident</Badge>
@@ -460,18 +364,18 @@ export default function CalendarPage() {
           {/* Events List */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">All Events</CardTitle>
-              <CardDescription>Complete event list for {format(currentDate, 'MMMM yyyy')}</CardDescription>
+              <CardTitle className="text-base">Upcoming Bookings & Trips</CardTitle>
+              <CardDescription>All bookings and dive trips scheduled for {format(currentDate, 'MMMM yyyy')}</CardDescription>
             </CardHeader>
             <CardContent>
-              {events.length === 0 ? (
-                <p className="text-muted-foreground">No events scheduled</p>
+              {events.filter(e => e.type === 'booking' || e.title?.includes('Trip')).length === 0 ? (
+                <p className="text-muted-foreground">No bookings or trips scheduled</p>
               ) : (
                 <div className="space-y-2">
                   {events
                     .filter((e) => {
                       const eventDate = parseISO(e.date);
-                      return isSameMonth(eventDate, currentDate);
+                      return isSameMonth(eventDate, currentDate) && (e.type === 'booking' || e.title?.includes('Trip'));
                     })
                     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                     .map((event) => (
