@@ -1,0 +1,193 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - region "Notifications (F8)":
+      - list
+    - region "Notifications alt+T"
+    - generic:
+      - complementary:
+        - generic:
+          - img
+          - generic: DiveAdmin
+        - navigation:
+          - link:
+            - /url: /
+            - img
+            - text: Dashboard
+          - link:
+            - /url: /calendar
+            - img
+            - text: Calendar
+          - link:
+            - /url: /dive-logs
+            - img
+            - text: Dive Trips
+          - link:
+            - /url: /divers
+            - img
+            - text: Divers
+          - link:
+            - /url: /dive-sites
+            - img
+            - text: Dive Sites
+          - link:
+            - /url: /staff
+            - img
+            - text: Staff
+          - link:
+            - /url: /staff-calendar
+            - img
+            - text: Staff Calendar
+          - link:
+            - /url: /boats
+            - img
+            - text: Boats
+          - link:
+            - /url: /courses
+            - img
+            - text: Courses
+          - link:
+            - /url: /bookings
+            - img
+            - text: Bookings & Invoices
+          - link:
+            - /url: /equipment-maintenance
+            - img
+            - text: Equipment
+          - link:
+            - /url: /forms-elearning
+            - img
+            - text: Forms & E-learning
+          - link:
+            - /url: /accommodations
+            - img
+            - text: Accommodations
+          - link:
+            - /url: /incidents
+            - img
+            - text: Incidents
+          - link:
+            - /url: /groups
+            - img
+            - text: Groups
+          - link:
+            - /url: /emergency
+            - img
+            - text: Emergency
+        - generic:
+          - button:
+            - generic:
+              - generic:
+                - generic: U
+              - generic:
+                - generic: User
+                - generic: mock@example.com
+          - generic:
+            - generic: DiveAdmin v2.0
+            - generic: PRO
+      - main:
+        - generic:
+          - generic:
+            - generic:
+              - heading [level=1]: Bookings & Invoices
+              - paragraph: Manage course bookings, accommodations, and payments
+            - generic:
+              - button:
+                - img
+                - text: Download Booking Form
+              - button [expanded]:
+                - img
+                - text: New Booking
+          - generic:
+            - generic:
+              - generic:
+                - heading [level=3]: Bookings (Last 30 Days)
+              - generic:
+                - generic: "0"
+            - generic:
+              - generic:
+                - heading [level=3]: Revenue (Paid)
+              - generic:
+                - generic: $0.00
+            - generic:
+              - generic:
+                - heading [level=3]: Total Amount
+              - generic:
+                - generic: $0.00
+          - generic:
+            - table:
+              - rowgroup:
+                - row:
+                  - columnheader: "Invoice #"
+                  - columnheader: Diver
+                  - columnheader: Course
+                  - columnheader: Accommodation
+                  - columnheader: Dates
+                  - columnheader: Total
+                  - columnheader: Status
+                  - columnheader
+              - rowgroup:
+                - row:
+                  - cell: No bookings yet
+  - dialog "New Booking" [ref=e2]:
+    - heading "New Booking" [level=2] [ref=e4]
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - text: Booking Type *
+        - generic [ref=e7]:
+          - button "Course" [active] [ref=e8] [cursor=pointer]
+          - button "Fun Dive" [ref=e9] [cursor=pointer]
+      - generic [ref=e10]:
+        - text: Diver *
+        - combobox [ref=e11] [cursor=pointer]:
+          - generic: Select diver
+          - img [ref=e12]
+      - generic [ref=e14]:
+        - text: Course
+        - combobox [ref=e15] [cursor=pointer]:
+          - generic: Select course (optional)
+          - img [ref=e16]
+      - generic [ref=e18]:
+        - text: Accommodation
+        - combobox [ref=e19] [cursor=pointer]:
+          - generic: Select accommodation (optional)
+          - img [ref=e20]
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - text: Check In
+          - textbox [ref=e24]
+        - generic [ref=e25]:
+          - text: Check Out
+          - textbox [ref=e26]
+      - generic [ref=e27]:
+        - text: Notes
+        - textbox [ref=e28]
+      - generic [ref=e29]:
+        - generic [ref=e30]: Details
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - text: Size
+            - textbox "e.g., M, L, XL" [ref=e33]
+          - generic [ref=e34]:
+            - text: Weight (kg)
+            - spinbutton [ref=e35]
+          - generic [ref=e36]:
+            - text: Height (cm)
+            - spinbutton [ref=e37]
+        - generic [ref=e38]:
+          - text: Agent
+          - combobox [ref=e39] [cursor=pointer]:
+            - generic: Select agent (optional)
+            - img [ref=e40]
+      - generic [ref=e42]:
+        - paragraph [ref=e43]: Estimated Total
+        - paragraph [ref=e44]: $0
+      - generic [ref=e45]:
+        - button "Cancel" [ref=e46] [cursor=pointer]
+        - button "Create" [ref=e47] [cursor=pointer]
+    - button "Close" [ref=e48] [cursor=pointer]:
+      - img [ref=e49]
+      - generic [ref=e52]: Close
+```

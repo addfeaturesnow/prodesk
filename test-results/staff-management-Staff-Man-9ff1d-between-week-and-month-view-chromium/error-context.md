@@ -1,0 +1,114 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - img [ref=e6]
+        - generic [ref=e9]: DiveAdmin
+      - navigation [ref=e10]:
+        - link "Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - text: Dashboard
+        - link "Calendar" [ref=e17] [cursor=pointer]:
+          - /url: /calendar
+          - img [ref=e18]
+          - text: Calendar
+        - link "Dive Trips" [ref=e20] [cursor=pointer]:
+          - /url: /dive-logs
+          - img [ref=e21]
+          - text: Dive Trips
+        - link "Divers" [ref=e23] [cursor=pointer]:
+          - /url: /divers
+          - img [ref=e24]
+          - text: Divers
+        - link "Dive Sites" [ref=e29] [cursor=pointer]:
+          - /url: /dive-sites
+          - img [ref=e30]
+          - text: Dive Sites
+        - link "Staff" [ref=e33] [cursor=pointer]:
+          - /url: /staff
+          - img [ref=e34]
+          - text: Staff
+        - link "Staff Calendar" [ref=e38] [cursor=pointer]:
+          - /url: /staff-calendar
+          - img [ref=e39]
+          - text: Staff Calendar
+        - link "Boats" [ref=e41] [cursor=pointer]:
+          - /url: /boats
+          - img [ref=e42]
+          - text: Boats
+        - link "Courses" [ref=e46] [cursor=pointer]:
+          - /url: /courses
+          - img [ref=e47]
+          - text: Courses
+        - link "Bookings & Invoices" [ref=e50] [cursor=pointer]:
+          - /url: /bookings
+          - img [ref=e51]
+          - text: Bookings & Invoices
+        - link "Equipment" [ref=e54] [cursor=pointer]:
+          - /url: /equipment-maintenance
+          - img [ref=e55]
+          - text: Equipment
+        - link "Forms & E-learning" [ref=e57] [cursor=pointer]:
+          - /url: /forms-elearning
+          - img [ref=e58]
+          - text: Forms & E-learning
+        - link "Accommodations" [ref=e61] [cursor=pointer]:
+          - /url: /accommodations
+          - img [ref=e62]
+          - text: Accommodations
+        - link "Incidents" [ref=e65] [cursor=pointer]:
+          - /url: /incidents
+          - img [ref=e66]
+          - text: Incidents
+        - link "Groups" [ref=e68] [cursor=pointer]:
+          - /url: /groups
+          - img [ref=e69]
+          - text: Groups
+        - link "Emergency" [ref=e73] [cursor=pointer]:
+          - /url: /emergency
+          - img [ref=e74]
+          - text: Emergency
+      - generic [ref=e76]:
+        - button "U User mock@example.com" [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]:
+            - generic [ref=e80]: U
+            - generic [ref=e81]:
+              - generic [ref=e82]: User
+              - generic [ref=e83]: mock@example.com
+        - generic [ref=e84]:
+          - generic [ref=e85]: DiveAdmin v2.0
+          - generic [ref=e86]: PRO
+    - main [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - generic [ref=e90]:
+            - heading "Staff Calendar" [level=1] [ref=e91]
+            - paragraph [ref=e92]: View staff assignments and availability
+          - generic [ref=e93]:
+            - tablist [ref=e95]:
+              - tab "Week" [ref=e96] [cursor=pointer]
+              - tab "Month" [active] [selected] [ref=e97] [cursor=pointer]
+            - generic [ref=e98]:
+              - button "←" [ref=e99] [cursor=pointer]
+              - generic [ref=e100]: February 2026
+              - button "→" [ref=e101] [cursor=pointer]
+        - generic [ref=e102]:
+          - tablist [ref=e103]:
+            - tab "Instructors" [selected] [ref=e104] [cursor=pointer]
+            - tab "Divemasters" [ref=e105] [cursor=pointer]
+            - tab "Boat Staff" [ref=e106] [cursor=pointer]
+          - tabpanel "Instructors" [ref=e107]:
+            - generic [ref=e110]: No instructors found
+        - generic [ref=e111]:
+          - heading "Certification Expiry Alerts" [level=3] [ref=e113]:
+            - img [ref=e114]
+            - text: Certification Expiry Alerts
+          - paragraph [ref=e118]: No upcoming certification expiries
+```

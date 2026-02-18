@@ -1401,6 +1401,10 @@ app.delete('/api/equipment/:id', (req, res) => {
     }
 
     const merged = {
+      ...existing,
+      ...req.body
+    };
+
     // Availability checks: prevent assigning staff already booked for overlapping dates
     const checkOverlap = (staffField, staffId, cb) => {
       if (!staffId || !check_in || !check_out) return cb(null, false);
@@ -1489,8 +1493,6 @@ app.delete('/api/equipment/:id', (req, res) => {
         );
       });
     });
-    LEFT JOIN divers d ON t.diver_id = d.id
-    WHERE t.id = ?
   `, [id], (err, transaction) => {
     if (err) {
       db.close();

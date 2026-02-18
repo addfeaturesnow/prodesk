@@ -1,9 +1,11 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Staff Management System', () => {
+  const baseURL = process.env.PREVIEW_URL ?? 'http://localhost:5177';
+
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
-    await page.goto('/');
+    await page.goto(baseURL);
 
     // Wait for the app to load
     await page.waitForSelector('text=DiveAdmin', { timeout: 10000 });
