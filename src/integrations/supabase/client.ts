@@ -41,7 +41,13 @@ if (!SUPABASE_URL) {
     return _loading;
   }
 
-  function createThenableProxy(callChain: Array<{ prop: string | symbol; args: any[] }> = []): any {
+  // Build a thenable proxy but allow synchronous overrides for some props
+  // (e.g. `auth`) so direct property access returns real functions/objects
+  // instead of the proxy-call wrapper.
+  function createThenableProxy(
+    callChain: Array<{ prop: string | symbol; args: any[] }> = [],
+    syncOverrides: Record<string | symbol, any> = {}
+  ): any {
     const handler: ProxyHandler<any> = {
       get(_target, prop) {
         if (prop === 'then') {
@@ -68,9 +74,15 @@ if (!SUPABASE_URL) {
             }).catch(reject);
           };
         }
+
+        // If a synchronous override exists for this property, return it.
+        if (callChain.length === 0 && Object.prototype.hasOwnProperty.call(syncOverrides, prop)) {
+          return (syncOverrides as any)[prop];
+        }
+
         return (...args: any[]) => {
           const next = callChain.concat([{ prop, args }]);
-          return createThenableProxy(next);
+          return createThenableProxy(next, syncOverrides);
         };
       }
     };
@@ -78,50 +90,48 @@ if (!SUPABASE_URL) {
     return new Proxy(proxyTarget, handler);
   }
 
-  _supabase = createThenableProxy();
-  // Add a synchronous `auth` shim on the thenable proxy so code that
-  // immediately reads `supabase.auth.onAuthStateChange` (or calls
-  // `supabase.auth.getSession()` / `signOut()`) won't blow up at runtime.
-  // The shim forwards to the real client once it's loaded, and returns
-  // safe defaults before then.
+  // The synchronous `auth` shim forwards to the real client's methods
+  // once loaded but provides the same call signature immediately.
   const authShim = {
     onAuthStateChange(cb: any) {
-      let unsubscribe = noopUnsubscribe;
-      ensureLoaded().then((real) => {
+      let unsub = noopUnsubscribe;
+      ensureLoaded()
+        .then((real) => {
+          try {
+            const res = real.auth.onAuthStateChange(cb);
+            unsub = res?.data?.subscription?.unsubscribe ?? noopUnsubscribe;
+          } catch (e) {
+            // ignore
+          }
+        })
+        .catch(() => {});
+      return { data: { subscription: { unsubscribe: () => { try { unsub(); } catch {} } } } };
+    },
+    getSession() {
+      // Return a thenable to match real client usage sites that `await` it.
+      return (async () => {
         try {
-          const res = real.auth.onAuthStateChange(cb);
-          unsubscribe = res?.data?.subscription?.unsubscribe ?? noopUnsubscribe;
+          const real = await ensureLoaded();
+          return real.auth.getSession();
         } catch (e) {
-          // ignore and keep noop
+          return { data: { session: null } };
         }
-      }).catch(() => {});
-      return { data: { subscription: { unsubscribe: () => { try { unsubscribe(); } catch {} } } } };
+      })();
     },
-    async getSession() {
-      try {
-        const real = await ensureLoaded();
-        return real.auth.getSession();
-      } catch (e) {
-        return { data: { session: null } };
-      }
-    },
-    async signOut() {
-      try {
-        const real = await ensureLoaded();
-        return real.auth.signOut();
-      } catch (e) {
-        return {};
-      }
+    signOut() {
+      return (async () => {
+        try {
+          const real = await ensureLoaded();
+          return real.auth.signOut();
+        } catch (e) {
+          return {};
+        }
+      })();
     }
   };
 
-  try {
-    // assign onto the proxy target so property access works synchronously
-    (_supabase as any).auth = authShim;
-  } catch (e) {
-    // best-effort: if assignment fails, fall back to exposing a plain object
-    _supabase = { auth: authShim };
-  }
+  // Create the proxy with `auth` synchronously available.
+  _supabase = createThenableProxy([], { auth: authShim });
 }
 
 export const supabase = _supabase;
