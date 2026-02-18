@@ -1,11 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Staff Management System', () => {
-  const baseURL = process.env.PREVIEW_URL ?? 'http://localhost:5177';
+  const baseURL = process.env.PREVIEW_URL ?? 'http://localhost:3001';
+  const frontendURL = 'http://localhost:5173';
 
   test.beforeEach(async ({ page }) => {
+    // Set the API URL for the test
+    await page.addInitScript(() => {
+      window.localStorage.setItem('VITE_API_URL', baseURL);
+    });
+
     // Navigate to the app
-    await page.goto(baseURL);
+    await page.goto(frontendURL);
 
     // Wait for the app to load
     await page.waitForSelector('text=DiveAdmin', { timeout: 10000 });

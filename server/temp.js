@@ -1493,7 +1493,6 @@ app.delete('/api/equipment/:id', (req, res) => {
         );
       });
     });
-  });
 });
 
 // GET /api/transactions/:id - get single transaction with items
@@ -2299,16 +2298,4 @@ app.put('/api/staff/:id', (req, res) => {
 });
 
 // DELETE /api/staff/:id - delete staff member
-app.delete('/api/staff/:id', (req, res) => {
-  const db = dbAdapter.getDb();
-  db.run('DELETE FROM staff WHERE id = ?', [req.params.id], (err) => {
-    db.close();
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ success: true });
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-});
+const PORT = process.env.PORT || 3000; app.listen(PORT, '0.0.0.0', () => { console.log(`Server running on http://0.0.0.0:${PORT}`); });

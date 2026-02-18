@@ -3,112 +3,118 @@
 ```yaml
 - generic [ref=e2]:
   - region "Notifications (F8)":
-    - list
+    - list [ref=e4]:
+      - status [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]: Error
+          - generic [ref=e8]: Failed to load staff calendar data
+        - button [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
   - region "Notifications alt+T"
-  - generic [ref=e3]:
-    - complementary [ref=e4]:
-      - generic [ref=e5]:
-        - img [ref=e6]
-        - generic [ref=e9]: DiveAdmin
-      - navigation [ref=e10]:
-        - link "Dashboard" [ref=e11] [cursor=pointer]:
+  - generic [ref=e14]:
+    - complementary [ref=e15]:
+      - generic [ref=e16]:
+        - img [ref=e17]
+        - generic [ref=e20]: DiveAdmin
+      - navigation [ref=e21]:
+        - link "Dashboard" [ref=e22] [cursor=pointer]:
           - /url: /
-          - img [ref=e12]
+          - img [ref=e23]
           - text: Dashboard
-        - link "Calendar" [ref=e17] [cursor=pointer]:
+        - link "Calendar" [ref=e28] [cursor=pointer]:
           - /url: /calendar
-          - img [ref=e18]
+          - img [ref=e29]
           - text: Calendar
-        - link "Dive Trips" [ref=e20] [cursor=pointer]:
+        - link "Dive Trips" [ref=e31] [cursor=pointer]:
           - /url: /dive-logs
-          - img [ref=e21]
+          - img [ref=e32]
           - text: Dive Trips
-        - link "Divers" [ref=e23] [cursor=pointer]:
+        - link "Divers" [ref=e34] [cursor=pointer]:
           - /url: /divers
-          - img [ref=e24]
+          - img [ref=e35]
           - text: Divers
-        - link "Dive Sites" [ref=e29] [cursor=pointer]:
+        - link "Dive Sites" [ref=e40] [cursor=pointer]:
           - /url: /dive-sites
-          - img [ref=e30]
+          - img [ref=e41]
           - text: Dive Sites
-        - link "Staff" [ref=e33] [cursor=pointer]:
+        - link "Staff" [ref=e44] [cursor=pointer]:
           - /url: /staff
-          - img [ref=e34]
+          - img [ref=e45]
           - text: Staff
-        - link "Staff Calendar" [ref=e38] [cursor=pointer]:
+        - link "Staff Calendar" [ref=e49] [cursor=pointer]:
           - /url: /staff-calendar
-          - img [ref=e39]
+          - img [ref=e50]
           - text: Staff Calendar
-        - link "Boats" [ref=e41] [cursor=pointer]:
+        - link "Boats" [ref=e52] [cursor=pointer]:
           - /url: /boats
-          - img [ref=e42]
+          - img [ref=e53]
           - text: Boats
-        - link "Courses" [ref=e46] [cursor=pointer]:
+        - link "Courses" [ref=e57] [cursor=pointer]:
           - /url: /courses
-          - img [ref=e47]
-          - text: Courses
-        - link "Bookings & Invoices" [ref=e50] [cursor=pointer]:
-          - /url: /bookings
-          - img [ref=e51]
-          - text: Bookings & Invoices
-        - link "Equipment" [ref=e54] [cursor=pointer]:
-          - /url: /equipment-maintenance
-          - img [ref=e55]
-          - text: Equipment
-        - link "Forms & E-learning" [ref=e57] [cursor=pointer]:
-          - /url: /forms-elearning
           - img [ref=e58]
-          - text: Forms & E-learning
-        - link "Accommodations" [ref=e61] [cursor=pointer]:
-          - /url: /accommodations
+          - text: Courses
+        - link "Bookings & Invoices" [ref=e61] [cursor=pointer]:
+          - /url: /bookings
           - img [ref=e62]
-          - text: Accommodations
-        - link "Incidents" [ref=e65] [cursor=pointer]:
-          - /url: /incidents
+          - text: Bookings & Invoices
+        - link "Equipment" [ref=e65] [cursor=pointer]:
+          - /url: /equipment-maintenance
           - img [ref=e66]
-          - text: Incidents
-        - link "Groups" [ref=e68] [cursor=pointer]:
-          - /url: /groups
+          - text: Equipment
+        - link "Forms & E-learning" [ref=e68] [cursor=pointer]:
+          - /url: /forms-elearning
           - img [ref=e69]
+          - text: Forms & E-learning
+        - link "Accommodations" [ref=e72] [cursor=pointer]:
+          - /url: /accommodations
+          - img [ref=e73]
+          - text: Accommodations
+        - link "Incidents" [ref=e76] [cursor=pointer]:
+          - /url: /incidents
+          - img [ref=e77]
+          - text: Incidents
+        - link "Groups" [ref=e79] [cursor=pointer]:
+          - /url: /groups
+          - img [ref=e80]
           - text: Groups
-        - link "Emergency" [ref=e73] [cursor=pointer]:
+        - link "Emergency" [ref=e84] [cursor=pointer]:
           - /url: /emergency
-          - img [ref=e74]
+          - img [ref=e85]
           - text: Emergency
-      - generic [ref=e76]:
-        - button "U User mock@example.com" [ref=e77] [cursor=pointer]:
-          - generic [ref=e78]:
-            - generic [ref=e80]: U
-            - generic [ref=e81]:
-              - generic [ref=e82]: User
-              - generic [ref=e83]: mock@example.com
-        - generic [ref=e84]:
-          - generic [ref=e85]: DiveAdmin v2.0
-          - generic [ref=e86]: PRO
-    - main [ref=e87]:
-      - generic [ref=e88]:
-        - generic [ref=e89]:
-          - generic [ref=e90]:
-            - heading "Staff Calendar" [level=1] [ref=e91]
-            - paragraph [ref=e92]: View staff assignments and availability
-          - generic [ref=e93]:
-            - tablist [ref=e95]:
-              - tab "Week" [ref=e96] [cursor=pointer]
-              - tab "Month" [active] [selected] [ref=e97] [cursor=pointer]
-            - generic [ref=e98]:
-              - button "←" [ref=e99] [cursor=pointer]
-              - generic [ref=e100]: February 2026
-              - button "→" [ref=e101] [cursor=pointer]
-        - generic [ref=e102]:
-          - tablist [ref=e103]:
-            - tab "Instructors" [selected] [ref=e104] [cursor=pointer]
-            - tab "Divemasters" [ref=e105] [cursor=pointer]
-            - tab "Boat Staff" [ref=e106] [cursor=pointer]
-          - tabpanel "Instructors" [ref=e107]:
-            - generic [ref=e110]: No instructors found
-        - generic [ref=e111]:
-          - heading "Certification Expiry Alerts" [level=3] [ref=e113]:
-            - img [ref=e114]
+      - generic [ref=e87]:
+        - button "U User mock@example.com" [ref=e88] [cursor=pointer]:
+          - generic [ref=e89]:
+            - generic [ref=e91]: U
+            - generic [ref=e92]:
+              - generic [ref=e93]: User
+              - generic [ref=e94]: mock@example.com
+        - generic [ref=e95]:
+          - generic [ref=e96]: DiveAdmin v2.0
+          - generic [ref=e97]: PRO
+    - main [ref=e98]:
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - heading "Staff Calendar" [level=1] [ref=e102]
+            - paragraph [ref=e103]: View staff assignments and availability
+          - generic [ref=e104]:
+            - tablist [ref=e106]:
+              - tab "Week" [ref=e107] [cursor=pointer]
+              - tab "Month" [active] [selected] [ref=e108] [cursor=pointer]
+            - generic [ref=e109]:
+              - button "←" [ref=e110] [cursor=pointer]
+              - generic [ref=e111]: February 2026
+              - button "→" [ref=e112] [cursor=pointer]
+        - generic [ref=e113]:
+          - tablist [ref=e114]:
+            - tab "Instructors" [selected] [ref=e115] [cursor=pointer]
+            - tab "Divemasters" [ref=e116] [cursor=pointer]
+            - tab "Boat Staff" [ref=e117] [cursor=pointer]
+          - tabpanel "Instructors" [ref=e118]:
+            - generic [ref=e121]: No instructors found
+        - generic [ref=e122]:
+          - heading "Certification Expiry Alerts" [level=3] [ref=e124]:
+            - img [ref=e125]
             - text: Certification Expiry Alerts
-          - paragraph [ref=e118]: No upcoming certification expiries
+          - paragraph [ref=e129]: No upcoming certification expiries
 ```
