@@ -12,29 +12,11 @@ interface AuthContext {
 const AuthCtx = createContext<AuthContext>({ user: null, session: null, loading: true, signOut: async () => {} });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Mock user for now to bypass auth
+  const mockUser = { id: 'mock-user', email: 'mock@example.com' };
+  const mockSession = { user: mockUser };
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  return <AuthCtx.Provider value={{ user, session, loading, signOut }}>{children}</AuthCtx.Provider>;
+  return <AuthCtx.Provider value={{ user: mockUser, session: mockSession, loading: false, signOut: async () => {} }}>{children}</AuthCtx.Provider>;
 }
 
 export const useAuth = () => useContext(AuthCtx);
