@@ -12,7 +12,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_none');
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', '127.0.0.1:5173', 'https://main.dc9vnrm1vnw2f.amplifyapp.com'],
+  origin: ['http://localhost:5173', 'http://localhost:4173', 'http://localhost:3000', '127.0.0.1:5173', '127.0.0.1:4173', 'https://main.dc9vnrm1vnw2f.amplifyapp.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-user-id', 'Authorization'],
@@ -627,9 +627,9 @@ app.post('/api/bookings', (req, res) => {
 
   const db = dbAdapter.getDb();
   db.run(
-    `INSERT INTO bookings (id, diver_id, course_id, group_id, accommodation_id, check_in, check_out, size, weight, height, agent_id, total_amount, invoice_number, payment_status, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', ?)`,
-    [id, diver_id, course_id || null, group_id || null, accommodation_id || null, check_in || null, check_out || null, size || null, weight || null, height || null, agent_id || null, total_amount || 0, invoiceNumber, notes || null],
+    `INSERT INTO bookings (id, diver_id, course_id, group_id, accommodation_id, check_in, check_out, size, weight, height, agent_id, divemaster_id, boat_staff_id, total_amount, invoice_number, payment_status, notes)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unpaid', ?)`,
+    [id, diver_id, course_id || null, group_id || null, accommodation_id || null, check_in || null, check_out || null, size || null, weight || null, height || null, agent_id || null, divemaster_id || null, boat_staff_id || null, total_amount || 0, invoiceNumber, notes || null],
     (err) => {
       if (err) {
         db.close();
@@ -639,19 +639,23 @@ app.post('/api/bookings', (req, res) => {
       db.get(`
         SELECT 
           b.id, b.diver_id, b.course_id, b.group_id, b.accommodation_id, b.check_in, b.check_out,
-          b.size, b.weight, b.height, b.agent_id,
+          b.size, b.weight, b.height, b.agent_id, b.divemaster_id, b.boat_staff_id,
           b.total_amount, b.invoice_number, b.payment_status, b.notes, b.created_at,
           d.name as diver_name,
           c.name as course_name, c.price as course_price,
           g.name as group_name, g.days as group_days,
           a.name as accommodation_name, a.price_per_night, a.tier,
-          i.id as agent_id, i.name as agent_name
+          i.id as agent_id, i.name as agent_name,
+          s1.id as divemaster_id, s1.name as divemaster_name,
+          s2.id as boat_staff_id, s2.name as boat_staff_name
         FROM bookings b
         LEFT JOIN divers d ON b.diver_id = d.id
         LEFT JOIN courses c ON b.course_id = c.id
         LEFT JOIN groups g ON b.group_id = g.id
         LEFT JOIN accommodations a ON b.accommodation_id = a.id
         LEFT JOIN instructors i ON b.agent_id = i.id
+        LEFT JOIN staff s1 ON b.divemaster_id = s1.id
+        LEFT JOIN staff s2 ON b.boat_staff_id = s2.id
         WHERE b.id = ?
       `, [id], (err, booking) => {
         db.close();
@@ -668,6 +672,8 @@ app.post('/api/bookings', (req, res) => {
           weight: booking.weight,
           height: booking.height,
           agent_id: booking.agent_id,
+          divemaster_id: booking.divemaster_id,
+          boat_staff_id: booking.boat_staff_id,
           total_amount: booking.total_amount,
           invoice_number: booking.invoice_number,
           payment_status: booking.payment_status,
@@ -677,7 +683,9 @@ app.post('/api/bookings', (req, res) => {
           courses: { name: booking.course_name, price: booking.course_price },
           groups: { name: booking.group_name, days: booking.group_days },
           accommodations: { name: booking.accommodation_name, price_per_night: booking.price_per_night, tier: booking.tier },
-          agent: booking.agent_id ? { id: booking.agent_id, name: booking.agent_name } : null
+          agent: booking.agent_id ? { id: booking.agent_id, name: booking.agent_name } : null,
+          divemaster: booking.divemaster_id ? { id: booking.divemaster_id, name: booking.divemaster_name } : null,
+          boat_staff: booking.boat_staff_id ? { id: booking.boat_staff_id, name: booking.boat_staff_name } : null
         });
       });
     }
