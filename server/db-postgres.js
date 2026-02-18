@@ -20,6 +20,11 @@ export function initPool() {
   return pool;
 }
 
+export function getDb() {
+  // PostgreSQL uses async methods, return null to signal async usage in index.js
+  return null;
+}
+
 export function getDbConnection() {
   return initPool();
 }
