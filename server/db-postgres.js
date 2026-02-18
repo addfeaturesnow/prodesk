@@ -52,7 +52,52 @@ export async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
       
-      // Equipment table
+    console.log('✅ PostgreSQL database initialized');
+
+    // Auto-seed data for PostgreSQL if tables are empty (helps Railway deployments)
+    try {
+      const countRes = await client.query('SELECT COUNT(*)::int as count FROM divers');
+      const count = (countRes && countRes.rows && countRes.rows[0]) ? countRes.rows[0].count : 0;
+      if (count === 0) {
+        console.log('📊 PostgreSQL database is empty, auto-seeding with initial data...');
+
+        const divers = [
+          { name: 'John Smith', email: 'john@example.com' },
+          { name: 'Sarah Johnson', email: 'sarah@example.com' },
+          { name: 'Mike Davis', email: 'mike@example.com' },
+          { name: 'Emily Brown', email: 'emily@example.com' },
+          { name: 'Alex Lee', email: 'alex@example.com' },
+        ];
+
+        const equipment = [
+          { name: 'Diving Mask', category: 'personal', quantity_in_stock: 50, quantity_available_for_rent: 50, can_rent: 1, rent_price_per_day: 5 },
+          { name: 'Snorkel', category: 'personal', quantity_in_stock: 50, quantity_available_for_rent: 50, can_rent: 1, rent_price_per_day: 3 },
+          { name: 'Fins (Pair)', category: 'personal', quantity_in_stock: 40, quantity_available_for_rent: 40, can_rent: 1, rent_price_per_day: 8 },
+          { name: 'Wetsuit 3mm', category: 'personal', quantity_in_stock: 30, quantity_available_for_rent: 30, can_rent: 1, rent_price_per_day: 10 },
+          { name: 'Wetsuit 5mm', category: 'personal', quantity_in_stock: 25, quantity_available_for_rent: 25, can_rent: 1, rent_price_per_day: 12 },
+          { name: 'Diving Tank (AL80)', category: 'equipment', quantity_in_stock: 20, quantity_available_for_rent: 20, can_rent: 1, rent_price_per_day: 15 },
+          { name: 'BCD (Buoyancy)', category: 'equipment', quantity_in_stock: 20, quantity_available_for_rent: 20, can_rent: 1, rent_price_per_day: 20 },
+          { name: 'Regulator Set', category: 'equipment', quantity_in_stock: 15, quantity_available_for_rent: 15, can_rent: 1, rent_price_per_day: 25 },
+        ];
+
+        for (const d of divers) {
+          const id = uuidv4();
+          await client.query('INSERT INTO divers (id, name, email) VALUES ($1, $2, $3)', [id, d.name, d.email]);
+        }
+
+        for (const e of equipment) {
+          const id = uuidv4();
+          await client.query(
+            'INSERT INTO equipment (id, name, category, quantity_in_stock, quantity_available_for_rent, can_rent, rent_price_per_day) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [id, e.name, e.category, e.quantity_in_stock, e.quantity_available_for_rent, e.can_rent, e.rent_price_per_day]
+          );
+        }
+
+        console.log('✅ PostgreSQL seeding complete');
+      }
+    } catch (seedErr) {
+      console.error('❌ PostgreSQL seeding failed:', seedErr);
+    }
       `CREATE TABLE IF NOT EXISTS equipment (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
