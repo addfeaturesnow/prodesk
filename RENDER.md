@@ -10,7 +10,8 @@ Deploy to Render in 4 Steps
 
 2. Add Environment Variables
    - In service Settings → Environment, add:
-     - `NODE_ENV` = `production`
+     - `NODE_ENV` = `produc
+     - tion`
      - `AUTO_SEED` = `false`
 
 3. Deploy
