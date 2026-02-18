@@ -60,8 +60,8 @@ export function generateInvoicePDF(data: InvoiceData) {
               <strong>${data.course}</strong><br/>
               ${data.checkIn && data.checkOut ? `<span style="color: #666; font-size: 12px;">${data.checkIn} to ${data.checkOut}</span>` : ''}
             </td>
-            <td style="padding: 12px; text-align: right; border-right: 1px solid #ddd;">$${data.coursePrice.toFixed(2)}</td>
-            <td style="padding: 12px; text-align: right;">$${data.coursePrice.toFixed(2)}</td>
+            <td style="padding: 12px; text-align: right; border-right: 1px solid #ddd;">$${Number(data.coursePrice || 0).toFixed(2)}</td>
+            <td style="padding: 12px; text-align: right;">$${Number(data.coursePrice || 0).toFixed(2)}</td>
           </tr>
           ` : ''}
           
@@ -71,7 +71,7 @@ export function generateInvoicePDF(data: InvoiceData) {
               <strong>${data.accommodation}</strong>
             </td>
             <td style="padding: 12px; text-align: right; border-right: 1px solid #ddd;">—</td>
-            <td style="padding: 12px; text-align: right;">$${data.accommodationPrice.toFixed(2)}</td>
+            <td style="padding: 12px; text-align: right;">$${Number(data.accommodationPrice || 0).toFixed(2)}</td>
           </tr>
           ` : ''}
         </tbody>
@@ -79,9 +79,9 @@ export function generateInvoicePDF(data: InvoiceData) {
 
       <div style="display: flex; justify-content: flex-end; margin-bottom: 30px;">
         <div style="width: 300px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 2px solid #0066cc; padding-top: 15px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 2px solid #0066cc; padding-top: 15px;">
             <div style="text-align: right; font-weight: bold;">TOTAL:</div>
-            <div style="text-align: right; font-size: 24px; font-weight: bold; color: #0066cc;">$${data.totalAmount.toFixed(2)}</div>
+            <div style="text-align: right; font-size: 24px; font-weight: bold; color: #0066cc;">$${Number(data.totalAmount || 0).toFixed(2)}</div>
           </div>
         </div>
       </div>
