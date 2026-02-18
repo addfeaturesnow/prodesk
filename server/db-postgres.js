@@ -148,6 +148,21 @@ export async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
 
+      // Staff table (consolidated for instructors, dive masters, boat staff)
+      `CREATE TABLE IF NOT EXISTS staff (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        role TEXT NOT NULL,
+        certification TEXT,
+        specialties TEXT,
+        certifications_valid_until TEXT,
+        availability TEXT DEFAULT 'available',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`,
+
       // Boats table
       `CREATE TABLE IF NOT EXISTS boats (
         id TEXT PRIMARY KEY,

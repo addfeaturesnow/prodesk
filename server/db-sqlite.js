@@ -74,6 +74,23 @@ export function initDb() {
         )
       `);
 
+      // Staff table (consolidated for instructors, divemasters, boat staff)
+      db.run(`
+        CREATE TABLE IF NOT EXISTS staff (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT,
+          phone TEXT,
+          role TEXT NOT NULL,
+          certification TEXT,
+          specialties TEXT,
+          certifications_valid_until TEXT,
+          availability TEXT DEFAULT 'available',
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
       // Boats table
       db.run(`
         CREATE TABLE IF NOT EXISTS boats (

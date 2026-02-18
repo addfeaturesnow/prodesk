@@ -16,10 +16,10 @@ import {
 const mainLinks = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/calendar", label: "Calendar", icon: Calendar },
-  { to: "/dive-logs", label: "Dive Logs", icon: BookOpen },
+  { to: "/dive-logs", label: "Dive Trips", icon: BookOpen },
   { to: "/divers", label: "Divers", icon: Users },
   { to: "/dive-sites", label: "Dive Sites", icon: MapPin },
-  { to: "/instructors", label: "Instructors", icon: UserCheck },
+  { to: "/staff", label: "Staff", icon: UserCheck },
   { to: "/boats", label: "Boats", icon: Ship },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/bookings", label: "Bookings & Invoices", icon: FileText },

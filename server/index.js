@@ -2127,6 +2127,96 @@ app.put('/api/problem-reports/:id', (req, res) => {
   );
 });
 
+// ===== STAFF ENDPOINTS =====
+
+// GET /api/staff - list all staff
+app.get('/api/staff', (req, res) => {
+  const db = dbAdapter.getDb();
+  db.all('SELECT * FROM staff ORDER BY role, name', (err, staff) => {
+    db.close();
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(staff || []);
+  });
+});
+
+// POST /api/staff - create new staff member
+app.post('/api/staff', (req, res) => {
+  const { name, email, phone, role, certification, specialties, certifications_valid_until, availability } = req.body;
+  if (!name || !role) {
+    return res.status(400).json({ error: 'name and role required' });
+  }
+
+  const db = dbAdapter.getDb();
+  const id = uuidv4();
+  db.run(
+    'INSERT INTO staff (id, name, email, phone, role, certification, specialties, certifications_valid_until, availability) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, name, email || null, phone || null, role, certification || null, specialties || null, certifications_valid_until || null, availability || 'available'],
+    (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+      db.get('SELECT * FROM staff WHERE id = ?', [id], (err, staff) => {
+        db.close();
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json(staff);
+      });
+    }
+  );
+});
+
+// PUT /api/staff/:id - update staff member
+app.put('/api/staff/:id', (req, res) => {
+  const { name, email, phone, role, certification, specialties, certifications_valid_until, availability } = req.body;
+  const db = dbAdapter.getDb();
+  
+  const updates = [];
+  const values = [];
+  
+  if (name !== undefined) { updates.push('name = ?'); values.push(name); }
+  if (email !== undefined) { updates.push('email = ?'); values.push(email || null); }
+  if (phone !== undefined) { updates.push('phone = ?'); values.push(phone || null); }
+  if (role !== undefined) { updates.push('role = ?'); values.push(role); }
+  if (certification !== undefined) { updates.push('certification = ?'); values.push(certification || null); }
+  if (specialties !== undefined) { updates.push('specialties = ?'); values.push(specialties || null); }
+  if (certifications_valid_until !== undefined) { updates.push('certifications_valid_until = ?'); values.push(certifications_valid_until || null); }
+  if (availability !== undefined) { updates.push('availability = ?'); values.push(availability); }
+  
+  if (updates.length === 0) {
+    db.close();
+    return res.status(400).json({ error: 'No fields to update' });
+  }
+  
+  updates.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(req.params.id);
+  
+  db.run(
+    `UPDATE staff SET ${updates.join(', ')} WHERE id = ?`,
+    values,
+    (err) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+      db.get('SELECT * FROM staff WHERE id = ?', [req.params.id], (err, staff) => {
+        db.close();
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(staff);
+      });
+    }
+  );
+});
+
+// DELETE /api/staff/:id - delete staff member
+app.delete('/api/staff/:id', (req, res) => {
+  const db = dbAdapter.getDb();
+  db.run('DELETE FROM staff WHERE id = ?', [req.params.id], (err) => {
+    db.close();
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
